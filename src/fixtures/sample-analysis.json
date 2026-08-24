@@ -1,0 +1,2797 @@
+{
+  "fixture_version": "1.1.0",
+  "scenario": "happy_path_with_review_flags",
+  "data_classification": "synthetic_demo_only",
+  "create_response": {
+    "analysis_id": "anl_demo_001",
+    "document_ids": [
+      "doc_pdf_001",
+      "doc_xlsx_001"
+    ],
+    "status": "accepted",
+    "status_url": "/api/v1/analyses/anl_demo_001/status",
+    "result_url": "/api/v1/analyses/anl_demo_001/result"
+  },
+  "status_sequence": [
+    {
+      "analysis_id": "anl_demo_001",
+      "status": "validating",
+      "completion_outcome": null,
+      "progress_percent": 8,
+      "active_stage": "validate",
+      "message": "File type, size, and parseability checks",
+      "stages": [
+        {
+          "key": "validate",
+          "title": "Validate input",
+          "description": "File type, size, and parseability checks",
+          "state": "active",
+          "progress_percent": 50,
+          "logs": [
+            "Accepted northwind-annual-report-2025.pdf · 3.4 MB · searchable PDF · 68 pages",
+            "Accepted northwind-trial-balance-2025.xlsx · 612 KB · 7 sheets"
+          ]
+        },
+        {
+          "key": "extract",
+          "title": "Extract fields",
+          "description": "Locate financial values and their source positions",
+          "state": "pending",
+          "progress_percent": 0,
+          "logs": []
+        },
+        {
+          "key": "normalize",
+          "title": "Normalize",
+          "description": "Resolve periods, currency, units, and signs",
+          "state": "pending",
+          "progress_percent": 0,
+          "logs": []
+        },
+        {
+          "key": "calculate",
+          "title": "Calculate",
+          "description": "Deterministic changes and ratios",
+          "state": "pending",
+          "progress_percent": 0,
+          "logs": []
+        },
+        {
+          "key": "detect",
+          "title": "Detect exceptions",
+          "description": "Evaluate configured anomaly and data-quality rules",
+          "state": "pending",
+          "progress_percent": 0,
+          "logs": []
+        },
+        {
+          "key": "explain",
+          "title": "Generate explanation",
+          "description": "Plain-language narrative grounded in facts",
+          "state": "pending",
+          "progress_percent": 0,
+          "logs": []
+        }
+      ],
+      "extraction_summary": {
+        "targeted_fields": 19,
+        "extracted_fields": 0,
+        "manual_review_count": 0
+      },
+      "error": null
+    },
+    {
+      "analysis_id": "anl_demo_001",
+      "status": "extracting",
+      "completion_outcome": null,
+      "progress_percent": 25,
+      "active_stage": "extract",
+      "message": "Locate financial values and their source positions",
+      "stages": [
+        {
+          "key": "validate",
+          "title": "Validate input",
+          "description": "File type, size, and parseability checks",
+          "state": "completed",
+          "progress_percent": 100,
+          "logs": [
+            "Accepted northwind-annual-report-2025.pdf · 3.4 MB · searchable PDF · 68 pages",
+            "Accepted northwind-trial-balance-2025.xlsx · 612 KB · 7 sheets",
+            "Both files are within the 20 MB per-file limit"
+          ]
+        },
+        {
+          "key": "extract",
+          "title": "Extract fields",
+          "description": "Locate financial values and their source positions",
+          "state": "active",
+          "progress_percent": 50,
+          "logs": [
+            "Statement of Profit or Loss located on page 34",
+            "Statement of Financial Position located on page 37",
+            "Statement of Cash Flows located on page 41"
+          ]
+        },
+        {
+          "key": "normalize",
+          "title": "Normalize",
+          "description": "Resolve periods, currency, units, and signs",
+          "state": "pending",
+          "progress_percent": 0,
+          "logs": []
+        },
+        {
+          "key": "calculate",
+          "title": "Calculate",
+          "description": "Deterministic changes and ratios",
+          "state": "pending",
+          "progress_percent": 0,
+          "logs": []
+        },
+        {
+          "key": "detect",
+          "title": "Detect exceptions",
+          "description": "Evaluate configured anomaly and data-quality rules",
+          "state": "pending",
+          "progress_percent": 0,
+          "logs": []
+        },
+        {
+          "key": "explain",
+          "title": "Generate explanation",
+          "description": "Plain-language narrative grounded in facts",
+          "state": "pending",
+          "progress_percent": 0,
+          "logs": []
+        }
+      ],
+      "extraction_summary": {
+        "targeted_fields": 19,
+        "extracted_fields": 17,
+        "manual_review_count": 0
+      },
+      "error": null
+    },
+    {
+      "analysis_id": "anl_demo_001",
+      "status": "normalizing",
+      "completion_outcome": null,
+      "progress_percent": 42,
+      "active_stage": "normalize",
+      "message": "Resolve periods, currency, units, and signs",
+      "stages": [
+        {
+          "key": "validate",
+          "title": "Validate input",
+          "description": "File type, size, and parseability checks",
+          "state": "completed",
+          "progress_percent": 100,
+          "logs": [
+            "Accepted northwind-annual-report-2025.pdf · 3.4 MB · searchable PDF · 68 pages",
+            "Accepted northwind-trial-balance-2025.xlsx · 612 KB · 7 sheets",
+            "Both files are within the 20 MB per-file limit"
+          ]
+        },
+        {
+          "key": "extract",
+          "title": "Extract fields",
+          "description": "Locate financial values and their source positions",
+          "state": "completed",
+          "progress_percent": 100,
+          "logs": [
+            "Statement of Profit or Loss located on page 34",
+            "Statement of Financial Position located on page 37",
+            "Statement of Cash Flows located on page 41",
+            "17 of 19 target fields have normalized values across 2 documents",
+            "Page 40 note 21 could not be read reliably — flagged for review"
+          ]
+        },
+        {
+          "key": "normalize",
+          "title": "Normalize",
+          "description": "Resolve periods, currency, units, and signs",
+          "state": "active",
+          "progress_percent": 50,
+          "logs": [
+            "Reporting periods resolved to FY2025 and FY2024",
+            "Currency resolved to MYR · unit scale thousands"
+          ]
+        },
+        {
+          "key": "calculate",
+          "title": "Calculate",
+          "description": "Deterministic changes and ratios",
+          "state": "pending",
+          "progress_percent": 0,
+          "logs": []
+        },
+        {
+          "key": "detect",
+          "title": "Detect exceptions",
+          "description": "Evaluate configured anomaly and data-quality rules",
+          "state": "pending",
+          "progress_percent": 0,
+          "logs": []
+        },
+        {
+          "key": "explain",
+          "title": "Generate explanation",
+          "description": "Plain-language narrative grounded in facts",
+          "state": "pending",
+          "progress_percent": 0,
+          "logs": []
+        }
+      ],
+      "extraction_summary": {
+        "targeted_fields": 19,
+        "extracted_fields": 17,
+        "manual_review_count": 0
+      },
+      "error": null
+    },
+    {
+      "analysis_id": "anl_demo_001",
+      "status": "calculating",
+      "completion_outcome": null,
+      "progress_percent": 58,
+      "active_stage": "calculate",
+      "message": "Deterministic changes and ratios",
+      "stages": [
+        {
+          "key": "validate",
+          "title": "Validate input",
+          "description": "File type, size, and parseability checks",
+          "state": "completed",
+          "progress_percent": 100,
+          "logs": [
+            "Accepted northwind-annual-report-2025.pdf · 3.4 MB · searchable PDF · 68 pages",
+            "Accepted northwind-trial-balance-2025.xlsx · 612 KB · 7 sheets",
+            "Both files are within the 20 MB per-file limit"
+          ]
+        },
+        {
+          "key": "extract",
+          "title": "Extract fields",
+          "description": "Locate financial values and their source positions",
+          "state": "completed",
+          "progress_percent": 100,
+          "logs": [
+            "Statement of Profit or Loss located on page 34",
+            "Statement of Financial Position located on page 37",
+            "Statement of Cash Flows located on page 41",
+            "17 of 19 target fields have normalized values across 2 documents",
+            "Page 40 note 21 could not be read reliably — flagged for review"
+          ]
+        },
+        {
+          "key": "normalize",
+          "title": "Normalize",
+          "description": "Resolve periods, currency, units, and signs",
+          "state": "completed",
+          "progress_percent": 100,
+          "logs": [
+            "Reporting periods resolved to FY2025 and FY2024",
+            "Currency resolved to MYR · unit scale thousands",
+            "Parenthesised figures converted to negative values where applicable",
+            "Raw source values retained alongside normalized values"
+          ]
+        },
+        {
+          "key": "calculate",
+          "title": "Calculate",
+          "description": "Deterministic changes and ratios",
+          "state": "active",
+          "progress_percent": 50,
+          "logs": [
+            "19 deterministic calculations completed",
+            "Payables-based ratios skipped — required input is not readable"
+          ]
+        },
+        {
+          "key": "detect",
+          "title": "Detect exceptions",
+          "description": "Evaluate configured anomaly and data-quality rules",
+          "state": "pending",
+          "progress_percent": 0,
+          "logs": []
+        },
+        {
+          "key": "explain",
+          "title": "Generate explanation",
+          "description": "Plain-language narrative grounded in facts",
+          "state": "pending",
+          "progress_percent": 0,
+          "logs": []
+        }
+      ],
+      "extraction_summary": {
+        "targeted_fields": 19,
+        "extracted_fields": 17,
+        "manual_review_count": 0
+      },
+      "error": null
+    },
+    {
+      "analysis_id": "anl_demo_001",
+      "status": "detecting_exceptions",
+      "completion_outcome": null,
+      "progress_percent": 75,
+      "active_stage": "detect",
+      "message": "Evaluate configured anomaly and data-quality rules",
+      "stages": [
+        {
+          "key": "validate",
+          "title": "Validate input",
+          "description": "File type, size, and parseability checks",
+          "state": "completed",
+          "progress_percent": 100,
+          "logs": [
+            "Accepted northwind-annual-report-2025.pdf · 3.4 MB · searchable PDF · 68 pages",
+            "Accepted northwind-trial-balance-2025.xlsx · 612 KB · 7 sheets",
+            "Both files are within the 20 MB per-file limit"
+          ]
+        },
+        {
+          "key": "extract",
+          "title": "Extract fields",
+          "description": "Locate financial values and their source positions",
+          "state": "completed",
+          "progress_percent": 100,
+          "logs": [
+            "Statement of Profit or Loss located on page 34",
+            "Statement of Financial Position located on page 37",
+            "Statement of Cash Flows located on page 41",
+            "17 of 19 target fields have normalized values across 2 documents",
+            "Page 40 note 21 could not be read reliably — flagged for review"
+          ]
+        },
+        {
+          "key": "normalize",
+          "title": "Normalize",
+          "description": "Resolve periods, currency, units, and signs",
+          "state": "completed",
+          "progress_percent": 100,
+          "logs": [
+            "Reporting periods resolved to FY2025 and FY2024",
+            "Currency resolved to MYR · unit scale thousands",
+            "Parenthesised figures converted to negative values where applicable",
+            "Raw source values retained alongside normalized values"
+          ]
+        },
+        {
+          "key": "calculate",
+          "title": "Calculate",
+          "description": "Deterministic changes and ratios",
+          "state": "completed",
+          "progress_percent": 100,
+          "logs": [
+            "19 deterministic calculations completed",
+            "Payables-based ratios skipped — required input is not readable",
+            "Every calculation stored with its formula and input values"
+          ]
+        },
+        {
+          "key": "detect",
+          "title": "Detect exceptions",
+          "description": "Evaluate configured anomaly and data-quality rules",
+          "state": "active",
+          "progress_percent": 50,
+          "logs": [
+            "7 of 12 configured rules triggered",
+            "1 cross-document value conflict retained without repair"
+          ]
+        },
+        {
+          "key": "explain",
+          "title": "Generate explanation",
+          "description": "Plain-language narrative grounded in facts",
+          "state": "pending",
+          "progress_percent": 0,
+          "logs": []
+        }
+      ],
+      "extraction_summary": {
+        "targeted_fields": 19,
+        "extracted_fields": 17,
+        "manual_review_count": 3
+      },
+      "error": null
+    },
+    {
+      "analysis_id": "anl_demo_001",
+      "status": "generating_explanation",
+      "completion_outcome": null,
+      "progress_percent": 92,
+      "active_stage": "explain",
+      "message": "Plain-language narrative grounded in facts",
+      "stages": [
+        {
+          "key": "validate",
+          "title": "Validate input",
+          "description": "File type, size, and parseability checks",
+          "state": "completed",
+          "progress_percent": 100,
+          "logs": [
+            "Accepted northwind-annual-report-2025.pdf · 3.4 MB · searchable PDF · 68 pages",
+            "Accepted northwind-trial-balance-2025.xlsx · 612 KB · 7 sheets",
+            "Both files are within the 20 MB per-file limit"
+          ]
+        },
+        {
+          "key": "extract",
+          "title": "Extract fields",
+          "description": "Locate financial values and their source positions",
+          "state": "completed",
+          "progress_percent": 100,
+          "logs": [
+            "Statement of Profit or Loss located on page 34",
+            "Statement of Financial Position located on page 37",
+            "Statement of Cash Flows located on page 41",
+            "17 of 19 target fields have normalized values across 2 documents",
+            "Page 40 note 21 could not be read reliably — flagged for review"
+          ]
+        },
+        {
+          "key": "normalize",
+          "title": "Normalize",
+          "description": "Resolve periods, currency, units, and signs",
+          "state": "completed",
+          "progress_percent": 100,
+          "logs": [
+            "Reporting periods resolved to FY2025 and FY2024",
+            "Currency resolved to MYR · unit scale thousands",
+            "Parenthesised figures converted to negative values where applicable",
+            "Raw source values retained alongside normalized values"
+          ]
+        },
+        {
+          "key": "calculate",
+          "title": "Calculate",
+          "description": "Deterministic changes and ratios",
+          "state": "completed",
+          "progress_percent": 100,
+          "logs": [
+            "19 deterministic calculations completed",
+            "Payables-based ratios skipped — required input is not readable",
+            "Every calculation stored with its formula and input values"
+          ]
+        },
+        {
+          "key": "detect",
+          "title": "Detect exceptions",
+          "description": "Evaluate configured anomaly and data-quality rules",
+          "state": "warning",
+          "progress_percent": 100,
+          "logs": [
+            "7 of 12 configured rules triggered",
+            "1 cross-document value conflict retained without repair",
+            "3 fields require manual review"
+          ]
+        },
+        {
+          "key": "explain",
+          "title": "Generate explanation",
+          "description": "Plain-language narrative grounded in facts",
+          "state": "active",
+          "progress_percent": 50,
+          "logs": [
+            "Narrative generated from extracted facts and 19 calculations",
+            "No financial value was generated by a language model"
+          ]
+        }
+      ],
+      "extraction_summary": {
+        "targeted_fields": 19,
+        "extracted_fields": 17,
+        "manual_review_count": 3
+      },
+      "error": null
+    },
+    {
+      "analysis_id": "anl_demo_001",
+      "status": "completed",
+      "completion_outcome": "completed_with_review_flags",
+      "progress_percent": 100,
+      "active_stage": null,
+      "message": "Analysis completed with review flags.",
+      "stages": [
+        {
+          "key": "validate",
+          "title": "Validate input",
+          "description": "File type, size, and parseability checks",
+          "state": "completed",
+          "progress_percent": 100,
+          "logs": [
+            "Accepted northwind-annual-report-2025.pdf · 3.4 MB · searchable PDF · 68 pages",
+            "Accepted northwind-trial-balance-2025.xlsx · 612 KB · 7 sheets",
+            "Both files are within the 20 MB per-file limit"
+          ]
+        },
+        {
+          "key": "extract",
+          "title": "Extract fields",
+          "description": "Locate financial values and their source positions",
+          "state": "completed",
+          "progress_percent": 100,
+          "logs": [
+            "Statement of Profit or Loss located on page 34",
+            "Statement of Financial Position located on page 37",
+            "Statement of Cash Flows located on page 41",
+            "17 of 19 target fields have normalized values across 2 documents",
+            "Page 40 note 21 could not be read reliably — flagged for review"
+          ]
+        },
+        {
+          "key": "normalize",
+          "title": "Normalize",
+          "description": "Resolve periods, currency, units, and signs",
+          "state": "completed",
+          "progress_percent": 100,
+          "logs": [
+            "Reporting periods resolved to FY2025 and FY2024",
+            "Currency resolved to MYR · unit scale thousands",
+            "Parenthesised figures converted to negative values where applicable",
+            "Raw source values retained alongside normalized values"
+          ]
+        },
+        {
+          "key": "calculate",
+          "title": "Calculate",
+          "description": "Deterministic changes and ratios",
+          "state": "completed",
+          "progress_percent": 100,
+          "logs": [
+            "19 deterministic calculations completed",
+            "Payables-based ratios skipped — required input is not readable",
+            "Every calculation stored with its formula and input values"
+          ]
+        },
+        {
+          "key": "detect",
+          "title": "Detect exceptions",
+          "description": "Evaluate configured anomaly and data-quality rules",
+          "state": "warning",
+          "progress_percent": 100,
+          "logs": [
+            "7 of 12 configured rules triggered",
+            "1 cross-document value conflict retained without repair",
+            "3 fields require manual review"
+          ]
+        },
+        {
+          "key": "explain",
+          "title": "Generate explanation",
+          "description": "Plain-language narrative grounded in facts",
+          "state": "completed",
+          "progress_percent": 100,
+          "logs": [
+            "Narrative generated from extracted facts and 19 calculations",
+            "No financial value was generated by a language model",
+            "5 follow-up questions prepared"
+          ]
+        }
+      ],
+      "extraction_summary": {
+        "targeted_fields": 19,
+        "extracted_fields": 17,
+        "manual_review_count": 3
+      },
+      "error": null
+    }
+  ],
+  "result": {
+    "summary": {
+      "analysis_id": "anl_demo_001",
+      "company": "Northwind Components Bhd (synthetic)",
+      "registration_id": "SYN-1998-0043221",
+      "currency": "MYR",
+      "unit_scale": "thousands",
+      "current_period": "FY2025",
+      "prior_period": "FY2024",
+      "statement_date": "2025-12-31",
+      "documents": [
+        {
+          "id": "doc_pdf_001",
+          "name": "northwind-annual-report-2025.pdf",
+          "size_bytes": 3565158,
+          "size_label": "3.4 MB",
+          "kind": "pdf",
+          "page_or_sheet_count": 68
+        },
+        {
+          "id": "doc_xlsx_001",
+          "name": "northwind-trial-balance-2025.xlsx",
+          "size_bytes": 626688,
+          "size_label": "612 KB",
+          "kind": "xlsx",
+          "page_or_sheet_count": 7
+        }
+      ],
+      "extraction_summary": {
+        "targeted_fields": 19,
+        "extracted_fields": 17,
+        "manual_review_count": 3
+      },
+      "completion_outcome": "completed_with_review_flags"
+    },
+    "fields": [
+      {
+        "id": "field_revenue",
+        "key": "revenue",
+        "label": "Revenue",
+        "status": "verified",
+        "confidence": "high",
+        "requires_manual_review": false,
+        "current": {
+          "id": "value_revenue_current",
+          "period": "FY2025",
+          "value": "148200",
+          "currency": "MYR",
+          "unit_scale": "thousands",
+          "sources": [
+            {
+              "document_id": "doc_pdf_001",
+              "document_name": "northwind-annual-report-2025.pdf",
+              "locator": "Page 34 · Statement of Profit or Loss · Row 1",
+              "raw_value": "148,200",
+              "excerpt": "Revenue 148,200 132,450",
+              "extracted_at": "2026-08-24T09:12:04Z"
+            }
+          ]
+        },
+        "prior": {
+          "id": "value_revenue_prior",
+          "period": "FY2024",
+          "value": "132450",
+          "currency": "MYR",
+          "unit_scale": "thousands",
+          "sources": [
+            {
+              "document_id": "doc_pdf_001",
+              "document_name": "northwind-annual-report-2025.pdf",
+              "locator": "Page 34 · Statement of Profit or Loss · Row 1",
+              "raw_value": "132,450",
+              "excerpt": "Revenue 148,200 132,450",
+              "extracted_at": "2026-08-24T09:12:04Z"
+            }
+          ]
+        },
+        "absolute_change": "15750",
+        "percentage_change": "11.89",
+        "conflict": null,
+        "note": null,
+        "evidence_id": "ev_field_revenue"
+      },
+      {
+        "id": "field_cost_of_sales",
+        "key": "cost_of_sales",
+        "label": "Cost of sales",
+        "status": "verified",
+        "confidence": "high",
+        "requires_manual_review": false,
+        "current": {
+          "id": "value_cost_of_sales_current",
+          "period": "FY2025",
+          "value": "117078",
+          "currency": "MYR",
+          "unit_scale": "thousands",
+          "sources": [
+            {
+              "document_id": "doc_pdf_001",
+              "document_name": "northwind-annual-report-2025.pdf",
+              "locator": "Page 34 · Statement of Profit or Loss · Row 2",
+              "raw_value": "(117,078)",
+              "excerpt": "Cost of sales (117,078) (101,987)",
+              "extracted_at": "2026-08-24T09:12:04Z"
+            }
+          ]
+        },
+        "prior": {
+          "id": "value_cost_of_sales_prior",
+          "period": "FY2024",
+          "value": "101987",
+          "currency": "MYR",
+          "unit_scale": "thousands",
+          "sources": [
+            {
+              "document_id": "doc_pdf_001",
+              "document_name": "northwind-annual-report-2025.pdf",
+              "locator": "Page 34 · Statement of Profit or Loss · Row 2",
+              "raw_value": "(101,987)",
+              "excerpt": "Cost of sales (117,078) (101,987)",
+              "extracted_at": "2026-08-24T09:12:04Z"
+            }
+          ]
+        },
+        "absolute_change": "15091",
+        "percentage_change": "14.8",
+        "conflict": null,
+        "note": "Expense is stored as a positive magnitude for comparison; the raw parenthesised source value is retained.",
+        "evidence_id": "ev_field_cost_of_sales"
+      },
+      {
+        "id": "field_gross_profit",
+        "key": "gross_profit",
+        "label": "Gross profit",
+        "status": "verified",
+        "confidence": "high",
+        "requires_manual_review": false,
+        "current": {
+          "id": "value_gross_profit_current",
+          "period": "FY2025",
+          "value": "31122",
+          "currency": "MYR",
+          "unit_scale": "thousands",
+          "sources": [
+            {
+              "document_id": "doc_pdf_001",
+              "document_name": "northwind-annual-report-2025.pdf",
+              "locator": "Page 34 · Statement of Profit or Loss · Row 4",
+              "raw_value": "31,122",
+              "excerpt": "Gross profit 31,122 30,463",
+              "extracted_at": "2026-08-24T09:12:05Z"
+            }
+          ]
+        },
+        "prior": {
+          "id": "value_gross_profit_prior",
+          "period": "FY2024",
+          "value": "30463",
+          "currency": "MYR",
+          "unit_scale": "thousands",
+          "sources": [
+            {
+              "document_id": "doc_pdf_001",
+              "document_name": "northwind-annual-report-2025.pdf",
+              "locator": "Page 34 · Statement of Profit or Loss · Row 4",
+              "raw_value": "30,463",
+              "excerpt": "Gross profit 31,122 30,463",
+              "extracted_at": "2026-08-24T09:12:05Z"
+            }
+          ]
+        },
+        "absolute_change": "659",
+        "percentage_change": "2.16",
+        "conflict": null,
+        "note": null,
+        "evidence_id": "ev_field_gross_profit"
+      },
+      {
+        "id": "field_operating_profit",
+        "key": "operating_profit",
+        "label": "Operating profit",
+        "status": "verified",
+        "confidence": "high",
+        "requires_manual_review": false,
+        "current": {
+          "id": "value_operating_profit_current",
+          "period": "FY2025",
+          "value": "9640",
+          "currency": "MYR",
+          "unit_scale": "thousands",
+          "sources": [
+            {
+              "document_id": "doc_pdf_001",
+              "document_name": "northwind-annual-report-2025.pdf",
+              "locator": "Page 34 · Statement of Profit or Loss · Row 9",
+              "raw_value": "9,640",
+              "excerpt": "Operating profit 9,640 11,880",
+              "extracted_at": "2026-08-24T09:12:05Z"
+            }
+          ]
+        },
+        "prior": {
+          "id": "value_operating_profit_prior",
+          "period": "FY2024",
+          "value": "11880",
+          "currency": "MYR",
+          "unit_scale": "thousands",
+          "sources": [
+            {
+              "document_id": "doc_pdf_001",
+              "document_name": "northwind-annual-report-2025.pdf",
+              "locator": "Page 34 · Statement of Profit or Loss · Row 9",
+              "raw_value": "11,880",
+              "excerpt": "Operating profit 9,640 11,880",
+              "extracted_at": "2026-08-24T09:12:05Z"
+            }
+          ]
+        },
+        "absolute_change": "-2240",
+        "percentage_change": "-18.86",
+        "conflict": null,
+        "note": null,
+        "evidence_id": "ev_field_operating_profit"
+      },
+      {
+        "id": "field_profit_before_tax",
+        "key": "profit_before_tax",
+        "label": "Profit before tax",
+        "status": "not_present",
+        "confidence": "high",
+        "requires_manual_review": true,
+        "current": {
+          "id": "value_profit_before_tax_current",
+          "period": "FY2025",
+          "value": null,
+          "currency": "MYR",
+          "unit_scale": "thousands",
+          "sources": []
+        },
+        "prior": {
+          "id": "value_profit_before_tax_prior",
+          "period": "FY2024",
+          "value": null,
+          "currency": "MYR",
+          "unit_scale": "thousands",
+          "sources": []
+        },
+        "absolute_change": null,
+        "percentage_change": null,
+        "conflict": null,
+        "note": "Not disclosed as a separate line in this source document. Absence is not an extraction failure.",
+        "evidence_id": "ev_field_profit_before_tax"
+      },
+      {
+        "id": "field_net_profit",
+        "key": "net_profit",
+        "label": "Net profit",
+        "status": "verified",
+        "confidence": "high",
+        "requires_manual_review": false,
+        "current": {
+          "id": "value_net_profit_current",
+          "period": "FY2025",
+          "value": "5180",
+          "currency": "MYR",
+          "unit_scale": "thousands",
+          "sources": [
+            {
+              "document_id": "doc_pdf_001",
+              "document_name": "northwind-annual-report-2025.pdf",
+              "locator": "Page 35 · Statement of Profit or Loss · Row 14",
+              "raw_value": "5,180",
+              "excerpt": "Profit for the financial year 5,180 8,240",
+              "extracted_at": "2026-08-24T09:12:06Z"
+            },
+            {
+              "document_id": "doc_xlsx_001",
+              "document_name": "northwind-trial-balance-2025.xlsx",
+              "locator": "Sheet 'P&L Summary' · Cell D22",
+              "raw_value": "5180",
+              "excerpt": "Net profit after tax | 5180",
+              "extracted_at": "2026-08-24T09:12:11Z"
+            }
+          ]
+        },
+        "prior": {
+          "id": "value_net_profit_prior",
+          "period": "FY2024",
+          "value": "8240",
+          "currency": "MYR",
+          "unit_scale": "thousands",
+          "sources": [
+            {
+              "document_id": "doc_pdf_001",
+              "document_name": "northwind-annual-report-2025.pdf",
+              "locator": "Page 35 · Statement of Profit or Loss · Row 14",
+              "raw_value": "8,240",
+              "excerpt": "Profit for the financial year 5,180 8,240",
+              "extracted_at": "2026-08-24T09:12:06Z"
+            }
+          ]
+        },
+        "absolute_change": "-3060",
+        "percentage_change": "-37.14",
+        "conflict": null,
+        "note": null,
+        "evidence_id": "ev_field_net_profit"
+      },
+      {
+        "id": "field_operating_cash_flow",
+        "key": "operating_cash_flow",
+        "label": "Operating cash flow",
+        "status": "verified",
+        "confidence": "high",
+        "requires_manual_review": false,
+        "current": {
+          "id": "value_operating_cash_flow_current",
+          "period": "FY2025",
+          "value": "-2310",
+          "currency": "MYR",
+          "unit_scale": "thousands",
+          "sources": [
+            {
+              "document_id": "doc_pdf_001",
+              "document_name": "northwind-annual-report-2025.pdf",
+              "locator": "Page 41 · Statement of Cash Flows · Row 12",
+              "raw_value": "(2,310)",
+              "excerpt": "Net cash from operating activities (2,310) 7,905",
+              "extracted_at": "2026-08-24T09:12:08Z"
+            }
+          ]
+        },
+        "prior": {
+          "id": "value_operating_cash_flow_prior",
+          "period": "FY2024",
+          "value": "7905",
+          "currency": "MYR",
+          "unit_scale": "thousands",
+          "sources": [
+            {
+              "document_id": "doc_pdf_001",
+              "document_name": "northwind-annual-report-2025.pdf",
+              "locator": "Page 41 · Statement of Cash Flows · Row 12",
+              "raw_value": "7,905",
+              "excerpt": "Net cash from operating activities (2,310) 7,905",
+              "extracted_at": "2026-08-24T09:12:08Z"
+            }
+          ]
+        },
+        "absolute_change": "-10215",
+        "percentage_change": "-129.22",
+        "conflict": null,
+        "note": "Parenthesised source value normalized to a negative figure.",
+        "evidence_id": "ev_field_operating_cash_flow"
+      },
+      {
+        "id": "field_current_assets",
+        "key": "current_assets",
+        "label": "Current assets",
+        "status": "verified",
+        "confidence": "high",
+        "requires_manual_review": false,
+        "current": {
+          "id": "value_current_assets_current",
+          "period": "FY2025",
+          "value": "62400",
+          "currency": "MYR",
+          "unit_scale": "thousands",
+          "sources": [
+            {
+              "document_id": "doc_pdf_001",
+              "document_name": "northwind-annual-report-2025.pdf",
+              "locator": "Page 37 · Statement of Financial Position · Row 8",
+              "raw_value": "62,400",
+              "excerpt": "Total current assets 62,400 58,120",
+              "extracted_at": "2026-08-24T09:12:07Z"
+            }
+          ]
+        },
+        "prior": {
+          "id": "value_current_assets_prior",
+          "period": "FY2024",
+          "value": "58120",
+          "currency": "MYR",
+          "unit_scale": "thousands",
+          "sources": [
+            {
+              "document_id": "doc_pdf_001",
+              "document_name": "northwind-annual-report-2025.pdf",
+              "locator": "Page 37 · Statement of Financial Position · Row 8",
+              "raw_value": "58,120",
+              "excerpt": "Total current assets 62,400 58,120",
+              "extracted_at": "2026-08-24T09:12:07Z"
+            }
+          ]
+        },
+        "absolute_change": "4280",
+        "percentage_change": "7.36",
+        "conflict": null,
+        "note": null,
+        "evidence_id": "ev_field_current_assets"
+      },
+      {
+        "id": "field_non_current_assets",
+        "key": "non_current_assets",
+        "label": "Non-current assets",
+        "status": "verified",
+        "confidence": "high",
+        "requires_manual_review": false,
+        "current": {
+          "id": "value_non_current_assets_current",
+          "period": "FY2025",
+          "value": "79400",
+          "currency": "MYR",
+          "unit_scale": "thousands",
+          "sources": [
+            {
+              "document_id": "doc_pdf_001",
+              "document_name": "northwind-annual-report-2025.pdf",
+              "locator": "Page 37 · Statement of Financial Position · Row 2",
+              "raw_value": "79,400",
+              "excerpt": "Total non-current assets 79,400 70,520",
+              "extracted_at": "2026-08-24T09:12:07Z"
+            }
+          ]
+        },
+        "prior": {
+          "id": "value_non_current_assets_prior",
+          "period": "FY2024",
+          "value": "70520",
+          "currency": "MYR",
+          "unit_scale": "thousands",
+          "sources": [
+            {
+              "document_id": "doc_pdf_001",
+              "document_name": "northwind-annual-report-2025.pdf",
+              "locator": "Page 37 · Statement of Financial Position · Row 2",
+              "raw_value": "70,520",
+              "excerpt": "Total non-current assets 79,400 70,520",
+              "extracted_at": "2026-08-24T09:12:07Z"
+            }
+          ]
+        },
+        "absolute_change": "8880",
+        "percentage_change": "12.59",
+        "conflict": null,
+        "note": null,
+        "evidence_id": "ev_field_non_current_assets"
+      },
+      {
+        "id": "field_total_assets",
+        "key": "total_assets",
+        "label": "Total assets",
+        "status": "verified",
+        "confidence": "high",
+        "requires_manual_review": false,
+        "current": {
+          "id": "value_total_assets_current",
+          "period": "FY2025",
+          "value": "141800",
+          "currency": "MYR",
+          "unit_scale": "thousands",
+          "sources": [
+            {
+              "document_id": "doc_pdf_001",
+              "document_name": "northwind-annual-report-2025.pdf",
+              "locator": "Page 37 · Statement of Financial Position · Row 14",
+              "raw_value": "141,800",
+              "excerpt": "Total assets 141,800 128,640",
+              "extracted_at": "2026-08-24T09:12:07Z"
+            }
+          ]
+        },
+        "prior": {
+          "id": "value_total_assets_prior",
+          "period": "FY2024",
+          "value": "128640",
+          "currency": "MYR",
+          "unit_scale": "thousands",
+          "sources": [
+            {
+              "document_id": "doc_pdf_001",
+              "document_name": "northwind-annual-report-2025.pdf",
+              "locator": "Page 37 · Statement of Financial Position · Row 14",
+              "raw_value": "128,640",
+              "excerpt": "Total assets 141,800 128,640",
+              "extracted_at": "2026-08-24T09:12:07Z"
+            }
+          ]
+        },
+        "absolute_change": "13160",
+        "percentage_change": "10.23",
+        "conflict": null,
+        "note": null,
+        "evidence_id": "ev_field_total_assets"
+      },
+      {
+        "id": "field_current_liabilities",
+        "key": "current_liabilities",
+        "label": "Current liabilities",
+        "status": "verified",
+        "confidence": "high",
+        "requires_manual_review": false,
+        "current": {
+          "id": "value_current_liabilities_current",
+          "period": "FY2025",
+          "value": "66950",
+          "currency": "MYR",
+          "unit_scale": "thousands",
+          "sources": [
+            {
+              "document_id": "doc_pdf_001",
+              "document_name": "northwind-annual-report-2025.pdf",
+              "locator": "Page 38 · Statement of Financial Position · Row 6",
+              "raw_value": "66,950",
+              "excerpt": "Total current liabilities 66,950 49,300",
+              "extracted_at": "2026-08-24T09:12:07Z"
+            }
+          ]
+        },
+        "prior": {
+          "id": "value_current_liabilities_prior",
+          "period": "FY2024",
+          "value": "49300",
+          "currency": "MYR",
+          "unit_scale": "thousands",
+          "sources": [
+            {
+              "document_id": "doc_pdf_001",
+              "document_name": "northwind-annual-report-2025.pdf",
+              "locator": "Page 38 · Statement of Financial Position · Row 6",
+              "raw_value": "49,300",
+              "excerpt": "Total current liabilities 66,950 49,300",
+              "extracted_at": "2026-08-24T09:12:07Z"
+            }
+          ]
+        },
+        "absolute_change": "17650",
+        "percentage_change": "35.8",
+        "conflict": null,
+        "note": null,
+        "evidence_id": "ev_field_current_liabilities"
+      },
+      {
+        "id": "field_non_current_liabilities",
+        "key": "non_current_liabilities",
+        "label": "Non-current liabilities",
+        "status": "verified",
+        "confidence": "high",
+        "requires_manual_review": false,
+        "current": {
+          "id": "value_non_current_liabilities_current",
+          "period": "FY2025",
+          "value": "26640",
+          "currency": "MYR",
+          "unit_scale": "thousands",
+          "sources": [
+            {
+              "document_id": "doc_pdf_001",
+              "document_name": "northwind-annual-report-2025.pdf",
+              "locator": "Page 38 · Statement of Financial Position · Row 12",
+              "raw_value": "26,640",
+              "excerpt": "Total non-current liabilities 26,640 32,460",
+              "extracted_at": "2026-08-24T09:12:07Z"
+            }
+          ]
+        },
+        "prior": {
+          "id": "value_non_current_liabilities_prior",
+          "period": "FY2024",
+          "value": "32460",
+          "currency": "MYR",
+          "unit_scale": "thousands",
+          "sources": [
+            {
+              "document_id": "doc_pdf_001",
+              "document_name": "northwind-annual-report-2025.pdf",
+              "locator": "Page 38 · Statement of Financial Position · Row 12",
+              "raw_value": "32,460",
+              "excerpt": "Total non-current liabilities 26,640 32,460",
+              "extracted_at": "2026-08-24T09:12:07Z"
+            }
+          ]
+        },
+        "absolute_change": "-5820",
+        "percentage_change": "-17.93",
+        "conflict": null,
+        "note": null,
+        "evidence_id": "ev_field_non_current_liabilities"
+      },
+      {
+        "id": "field_total_liabilities",
+        "key": "total_liabilities",
+        "label": "Total liabilities",
+        "status": "verified",
+        "confidence": "high",
+        "requires_manual_review": false,
+        "current": {
+          "id": "value_total_liabilities_current",
+          "period": "FY2025",
+          "value": "93590",
+          "currency": "MYR",
+          "unit_scale": "thousands",
+          "sources": [
+            {
+              "document_id": "doc_pdf_001",
+              "document_name": "northwind-annual-report-2025.pdf",
+              "locator": "Page 38 · Statement of Financial Position · Row 16",
+              "raw_value": "93,590",
+              "excerpt": "Total liabilities 93,590 81,760",
+              "extracted_at": "2026-08-24T09:12:07Z"
+            }
+          ]
+        },
+        "prior": {
+          "id": "value_total_liabilities_prior",
+          "period": "FY2024",
+          "value": "81760",
+          "currency": "MYR",
+          "unit_scale": "thousands",
+          "sources": [
+            {
+              "document_id": "doc_pdf_001",
+              "document_name": "northwind-annual-report-2025.pdf",
+              "locator": "Page 38 · Statement of Financial Position · Row 16",
+              "raw_value": "81,760",
+              "excerpt": "Total liabilities 93,590 81,760",
+              "extracted_at": "2026-08-24T09:12:07Z"
+            }
+          ]
+        },
+        "absolute_change": "11830",
+        "percentage_change": "14.47",
+        "conflict": null,
+        "note": null,
+        "evidence_id": "ev_field_total_liabilities"
+      },
+      {
+        "id": "field_shareholders_equity",
+        "key": "shareholders_equity",
+        "label": "Shareholders' equity",
+        "status": "verified",
+        "confidence": "high",
+        "requires_manual_review": false,
+        "current": {
+          "id": "value_shareholders_equity_current",
+          "period": "FY2025",
+          "value": "48210",
+          "currency": "MYR",
+          "unit_scale": "thousands",
+          "sources": [
+            {
+              "document_id": "doc_pdf_001",
+              "document_name": "northwind-annual-report-2025.pdf",
+              "locator": "Page 38 · Statement of Financial Position · Row 20",
+              "raw_value": "48,210",
+              "excerpt": "Total equity 48,210 46,880",
+              "extracted_at": "2026-08-24T09:12:07Z"
+            }
+          ]
+        },
+        "prior": {
+          "id": "value_shareholders_equity_prior",
+          "period": "FY2024",
+          "value": "46880",
+          "currency": "MYR",
+          "unit_scale": "thousands",
+          "sources": [
+            {
+              "document_id": "doc_pdf_001",
+              "document_name": "northwind-annual-report-2025.pdf",
+              "locator": "Page 38 · Statement of Financial Position · Row 20",
+              "raw_value": "46,880",
+              "excerpt": "Total equity 48,210 46,880",
+              "extracted_at": "2026-08-24T09:12:07Z"
+            }
+          ]
+        },
+        "absolute_change": "1330",
+        "percentage_change": "2.84",
+        "conflict": null,
+        "note": null,
+        "evidence_id": "ev_field_shareholders_equity"
+      },
+      {
+        "id": "field_borrowings",
+        "key": "borrowings",
+        "label": "Borrowings",
+        "status": "verified",
+        "confidence": "high",
+        "requires_manual_review": false,
+        "current": {
+          "id": "value_borrowings_current",
+          "period": "FY2025",
+          "value": "54600",
+          "currency": "MYR",
+          "unit_scale": "thousands",
+          "sources": [
+            {
+              "document_id": "doc_pdf_001",
+              "document_name": "northwind-annual-report-2025.pdf",
+              "locator": "Page 39 · Note 18 Borrowings · Table 2",
+              "raw_value": "54,600",
+              "excerpt": "Total borrowings 54,600 38,150",
+              "extracted_at": "2026-08-24T09:12:09Z"
+            }
+          ]
+        },
+        "prior": {
+          "id": "value_borrowings_prior",
+          "period": "FY2024",
+          "value": "38150",
+          "currency": "MYR",
+          "unit_scale": "thousands",
+          "sources": [
+            {
+              "document_id": "doc_pdf_001",
+              "document_name": "northwind-annual-report-2025.pdf",
+              "locator": "Page 39 · Note 18 Borrowings · Table 2",
+              "raw_value": "38,150",
+              "excerpt": "Total borrowings 54,600 38,150",
+              "extracted_at": "2026-08-24T09:12:09Z"
+            }
+          ]
+        },
+        "absolute_change": "16450",
+        "percentage_change": "43.12",
+        "conflict": null,
+        "note": null,
+        "evidence_id": "ev_field_borrowings"
+      },
+      {
+        "id": "field_trade_receivables",
+        "key": "trade_receivables",
+        "label": "Trade receivables",
+        "status": "conflicting",
+        "confidence": "medium",
+        "requires_manual_review": true,
+        "current": {
+          "id": "value_trade_receivables_current",
+          "period": "FY2025",
+          "value": "41900",
+          "currency": "MYR",
+          "unit_scale": "thousands",
+          "sources": [
+            {
+              "document_id": "doc_pdf_001",
+              "document_name": "northwind-annual-report-2025.pdf",
+              "locator": "Page 37 · Statement of Financial Position · Row 4",
+              "raw_value": "41,900",
+              "excerpt": "Trade and other receivables 41,900 29,600",
+              "extracted_at": "2026-08-24T09:12:07Z"
+            }
+          ]
+        },
+        "prior": {
+          "id": "value_trade_receivables_prior",
+          "period": "FY2024",
+          "value": "29600",
+          "currency": "MYR",
+          "unit_scale": "thousands",
+          "sources": [
+            {
+              "document_id": "doc_pdf_001",
+              "document_name": "northwind-annual-report-2025.pdf",
+              "locator": "Page 37 · Statement of Financial Position · Row 4",
+              "raw_value": "29,600",
+              "excerpt": "Trade and other receivables 41,900 29,600",
+              "extracted_at": "2026-08-24T09:12:07Z"
+            }
+          ]
+        },
+        "absolute_change": "12300",
+        "percentage_change": "41.55",
+        "conflict": {
+          "period": "FY2025",
+          "value": "40150",
+          "source": {
+            "document_id": "doc_xlsx_001",
+            "document_name": "northwind-trial-balance-2025.xlsx",
+            "locator": "Sheet 'Balances' · Cell F17",
+            "raw_value": "40150",
+            "excerpt": "Trade receivables (net of provision) | 40150",
+            "extracted_at": "2026-08-24T09:12:12Z"
+          }
+        },
+        "note": "Two sources disagree by 1,750 thousand MYR. Both values are retained and flagged for review.",
+        "evidence_id": "ev_field_trade_receivables"
+      },
+      {
+        "id": "field_trade_payables",
+        "key": "trade_payables",
+        "label": "Trade payables",
+        "status": "not_readable",
+        "confidence": "low",
+        "requires_manual_review": true,
+        "current": {
+          "id": "value_trade_payables_current",
+          "period": "FY2025",
+          "value": null,
+          "currency": "MYR",
+          "unit_scale": "thousands",
+          "sources": [
+            {
+              "document_id": "doc_pdf_001",
+              "document_name": "northwind-annual-report-2025.pdf",
+              "locator": "Page 40 · Note 21 · Table 1",
+              "raw_value": "—",
+              "excerpt": "Trade payables ▮▮,▮▮▮ (scanned region, low OCR confidence)",
+              "extracted_at": "2026-08-24T09:12:10Z"
+            }
+          ]
+        },
+        "prior": {
+          "id": "value_trade_payables_prior",
+          "period": "FY2024",
+          "value": null,
+          "currency": "MYR",
+          "unit_scale": "thousands",
+          "sources": []
+        },
+        "absolute_change": null,
+        "percentage_change": null,
+        "conflict": null,
+        "note": "Scanned table region could not be read reliably. No value was substituted.",
+        "evidence_id": "ev_field_trade_payables"
+      },
+      {
+        "id": "field_inventory",
+        "key": "inventory",
+        "label": "Inventory",
+        "status": "verified",
+        "confidence": "medium",
+        "requires_manual_review": false,
+        "current": {
+          "id": "value_inventory_current",
+          "period": "FY2025",
+          "value": "14310",
+          "currency": "MYR",
+          "unit_scale": "thousands",
+          "sources": [
+            {
+              "document_id": "doc_xlsx_001",
+              "document_name": "northwind-trial-balance-2025.xlsx",
+              "locator": "Sheet 'Balances' · Cell F21",
+              "raw_value": "14310",
+              "excerpt": "Inventories at cost | 14310",
+              "extracted_at": "2026-08-24T09:12:12Z"
+            }
+          ]
+        },
+        "prior": {
+          "id": "value_inventory_prior",
+          "period": "FY2024",
+          "value": "12040",
+          "currency": "MYR",
+          "unit_scale": "thousands",
+          "sources": [
+            {
+              "document_id": "doc_xlsx_001",
+              "document_name": "northwind-trial-balance-2025.xlsx",
+              "locator": "Sheet 'Balances' · Cell E21",
+              "raw_value": "12040",
+              "excerpt": "Inventories at cost | 12040",
+              "extracted_at": "2026-08-24T09:12:12Z"
+            }
+          ]
+        },
+        "absolute_change": "2270",
+        "percentage_change": "18.85",
+        "conflict": null,
+        "note": null,
+        "evidence_id": "ev_field_inventory"
+      },
+      {
+        "id": "field_cash",
+        "key": "cash",
+        "label": "Cash and cash equivalents",
+        "status": "verified",
+        "confidence": "high",
+        "requires_manual_review": false,
+        "current": {
+          "id": "value_cash_current",
+          "period": "FY2025",
+          "value": "4820",
+          "currency": "MYR",
+          "unit_scale": "thousands",
+          "sources": [
+            {
+              "document_id": "doc_pdf_001",
+              "document_name": "northwind-annual-report-2025.pdf",
+              "locator": "Page 37 · Statement of Financial Position · Row 7",
+              "raw_value": "4,820",
+              "excerpt": "Cash and bank balances 4,820 11,240",
+              "extracted_at": "2026-08-24T09:12:07Z"
+            }
+          ]
+        },
+        "prior": {
+          "id": "value_cash_prior",
+          "period": "FY2024",
+          "value": "11240",
+          "currency": "MYR",
+          "unit_scale": "thousands",
+          "sources": [
+            {
+              "document_id": "doc_pdf_001",
+              "document_name": "northwind-annual-report-2025.pdf",
+              "locator": "Page 37 · Statement of Financial Position · Row 7",
+              "raw_value": "11,240",
+              "excerpt": "Cash and bank balances 4,820 11,240",
+              "extracted_at": "2026-08-24T09:12:07Z"
+            }
+          ]
+        },
+        "absolute_change": "-6420",
+        "percentage_change": "-57.12",
+        "conflict": null,
+        "note": null,
+        "evidence_id": "ev_field_cash"
+      }
+    ],
+    "calculations": [
+      {
+        "id": "c_revenue_change",
+        "label": "Revenue change",
+        "formula": "(Revenue FY2025 − Revenue FY2024) / Revenue FY2024 × 100",
+        "input_value_ids": [
+          "value_revenue_current",
+          "value_revenue_prior"
+        ],
+        "substitution": "(148,200 − 132,450) / 132,450 × 100",
+        "result": "11.89",
+        "unit": "percentage",
+        "period": "FY2025",
+        "evidence_id": "ev_kpi_revenue"
+      },
+      {
+        "id": "c_net_profit_change",
+        "label": "Net profit change",
+        "formula": "(Net profit FY2025 − Net profit FY2024) / Net profit FY2024 × 100",
+        "input_value_ids": [
+          "value_net_profit_current",
+          "value_net_profit_prior"
+        ],
+        "substitution": "(5,180 − 8,240) / 8,240 × 100",
+        "result": "-37.14",
+        "unit": "percentage",
+        "period": "FY2025",
+        "evidence_id": "ev_kpi_net_profit"
+      },
+      {
+        "id": "c_gross_margin_current",
+        "label": "Gross profit margin",
+        "formula": "Gross profit / Revenue × 100",
+        "input_value_ids": [
+          "value_gross_profit_current",
+          "value_revenue_current"
+        ],
+        "substitution": "31,122 / 148,200 × 100",
+        "result": "21",
+        "unit": "percentage",
+        "period": "FY2025",
+        "evidence_id": "ev_ratio_gross_margin"
+      },
+      {
+        "id": "c_gross_margin_prior",
+        "label": "Gross profit margin",
+        "formula": "Gross profit / Revenue × 100",
+        "input_value_ids": [
+          "value_gross_profit_prior",
+          "value_revenue_prior"
+        ],
+        "substitution": "30,463 / 132,450 × 100",
+        "result": "23",
+        "unit": "percentage",
+        "period": "FY2024",
+        "evidence_id": "ev_ratio_gross_margin"
+      },
+      {
+        "id": "c_operating_margin_current",
+        "label": "Operating margin",
+        "formula": "Operating profit / Revenue × 100",
+        "input_value_ids": [
+          "value_operating_profit_current",
+          "value_revenue_current"
+        ],
+        "substitution": "9,640 / 148,200 × 100",
+        "result": "6.5",
+        "unit": "percentage",
+        "period": "FY2025",
+        "evidence_id": "ev_ratio_operating_margin"
+      },
+      {
+        "id": "c_operating_margin_prior",
+        "label": "Operating margin",
+        "formula": "Operating profit / Revenue × 100",
+        "input_value_ids": [
+          "value_operating_profit_prior",
+          "value_revenue_prior"
+        ],
+        "substitution": "11,880 / 132,450 × 100",
+        "result": "8.97",
+        "unit": "percentage",
+        "period": "FY2024",
+        "evidence_id": "ev_ratio_operating_margin"
+      },
+      {
+        "id": "c_net_margin_current",
+        "label": "Net profit margin",
+        "formula": "Net profit / Revenue × 100",
+        "input_value_ids": [
+          "value_net_profit_current",
+          "value_revenue_current"
+        ],
+        "substitution": "5,180 / 148,200 × 100",
+        "result": "3.49",
+        "unit": "percentage",
+        "period": "FY2025",
+        "evidence_id": "ev_ratio_net_margin"
+      },
+      {
+        "id": "c_net_margin_prior",
+        "label": "Net profit margin",
+        "formula": "Net profit / Revenue × 100",
+        "input_value_ids": [
+          "value_net_profit_prior",
+          "value_revenue_prior"
+        ],
+        "substitution": "8,240 / 132,450 × 100",
+        "result": "6.22",
+        "unit": "percentage",
+        "period": "FY2024",
+        "evidence_id": "ev_ratio_net_margin"
+      },
+      {
+        "id": "c_current_ratio_current",
+        "label": "Current ratio",
+        "formula": "Current assets / Current liabilities",
+        "input_value_ids": [
+          "value_current_assets_current",
+          "value_current_liabilities_current"
+        ],
+        "substitution": "62,400 / 66,950",
+        "result": "0.93",
+        "unit": "ratio",
+        "period": "FY2025",
+        "evidence_id": "ev_ratio_current_ratio"
+      },
+      {
+        "id": "c_current_ratio_prior",
+        "label": "Current ratio",
+        "formula": "Current assets / Current liabilities",
+        "input_value_ids": [
+          "value_current_assets_prior",
+          "value_current_liabilities_prior"
+        ],
+        "substitution": "58,120 / 49,300",
+        "result": "1.18",
+        "unit": "ratio",
+        "period": "FY2024",
+        "evidence_id": "ev_ratio_current_ratio"
+      },
+      {
+        "id": "c_debt_to_equity_current",
+        "label": "Debt-to-equity",
+        "formula": "Borrowings / Shareholders' equity",
+        "input_value_ids": [
+          "value_borrowings_current",
+          "value_shareholders_equity_current"
+        ],
+        "substitution": "54,600 / 48,210",
+        "result": "1.13",
+        "unit": "ratio",
+        "period": "FY2025",
+        "evidence_id": "ev_ratio_debt_to_equity"
+      },
+      {
+        "id": "c_debt_to_equity_prior",
+        "label": "Debt-to-equity",
+        "formula": "Borrowings / Shareholders' equity",
+        "input_value_ids": [
+          "value_borrowings_prior",
+          "value_shareholders_equity_prior"
+        ],
+        "substitution": "38,150 / 46,880",
+        "result": "0.81",
+        "unit": "ratio",
+        "period": "FY2024",
+        "evidence_id": "ev_ratio_debt_to_equity"
+      },
+      {
+        "id": "c_roa_current",
+        "label": "Return on assets",
+        "formula": "Net profit / Total assets × 100",
+        "input_value_ids": [
+          "value_net_profit_current",
+          "value_total_assets_current"
+        ],
+        "substitution": "5,180 / 141,800 × 100",
+        "result": "3.65",
+        "unit": "percentage",
+        "period": "FY2025",
+        "evidence_id": "ev_ratio_roa"
+      },
+      {
+        "id": "c_roa_prior",
+        "label": "Return on assets",
+        "formula": "Net profit / Total assets × 100",
+        "input_value_ids": [
+          "value_net_profit_prior",
+          "value_total_assets_prior"
+        ],
+        "substitution": "8,240 / 128,640 × 100",
+        "result": "6.4",
+        "unit": "percentage",
+        "period": "FY2024",
+        "evidence_id": "ev_ratio_roa"
+      },
+      {
+        "id": "c_roe_current",
+        "label": "Return on equity",
+        "formula": "Net profit / Shareholders' equity × 100",
+        "input_value_ids": [
+          "value_net_profit_current",
+          "value_shareholders_equity_current"
+        ],
+        "substitution": "5,180 / 48,210 × 100",
+        "result": "10.74",
+        "unit": "percentage",
+        "period": "FY2025",
+        "evidence_id": "ev_ratio_roe"
+      },
+      {
+        "id": "c_roe_prior",
+        "label": "Return on equity",
+        "formula": "Net profit / Shareholders' equity × 100",
+        "input_value_ids": [
+          "value_net_profit_prior",
+          "value_shareholders_equity_prior"
+        ],
+        "substitution": "8,240 / 46,880 × 100",
+        "result": "17.58",
+        "unit": "percentage",
+        "period": "FY2024",
+        "evidence_id": "ev_ratio_roe"
+      },
+      {
+        "id": "c_operating_cash_flow_change",
+        "label": "Operating cash flow change",
+        "formula": "Operating cash flow FY2025 − Operating cash flow FY2024",
+        "input_value_ids": [
+          "value_operating_cash_flow_current",
+          "value_operating_cash_flow_prior"
+        ],
+        "substitution": "(2,310) − 7,905",
+        "result": "-10215",
+        "unit": "currency",
+        "period": "FY2025",
+        "evidence_id": "ev_kpi_operating_cash_flow"
+      },
+      {
+        "id": "c_borrowings_change",
+        "label": "Borrowings change",
+        "formula": "(Borrowings FY2025 − Borrowings FY2024) / Borrowings FY2024 × 100",
+        "input_value_ids": [
+          "value_borrowings_current",
+          "value_borrowings_prior"
+        ],
+        "substitution": "(54,600 − 38,150) / 38,150 × 100",
+        "result": "43.12",
+        "unit": "percentage",
+        "period": "FY2025",
+        "evidence_id": "ev_anomaly_debt_increase"
+      },
+      {
+        "id": "c_receivables_change",
+        "label": "Trade receivables change",
+        "formula": "(Receivables FY2025 − Receivables FY2024) / Receivables FY2024 × 100",
+        "input_value_ids": [
+          "value_trade_receivables_current",
+          "value_trade_receivables_prior"
+        ],
+        "substitution": "(41,900 − 29,600) / 29,600 × 100",
+        "result": "41.55",
+        "unit": "percentage",
+        "period": "FY2025",
+        "evidence_id": "ev_anomaly_receivables_vs_revenue"
+      }
+    ],
+    "kpis": [
+      {
+        "id": "kpi_revenue",
+        "label": "Revenue",
+        "format": "currency",
+        "current": "148200",
+        "prior": "132450",
+        "absolute_change": "15750",
+        "percentage_change": "11.89",
+        "higher_is_better": true,
+        "status": "verified",
+        "calculation_id": "c_revenue_change",
+        "evidence_id": "ev_kpi_revenue"
+      },
+      {
+        "id": "kpi_net_profit",
+        "label": "Net profit",
+        "format": "currency",
+        "current": "5180",
+        "prior": "8240",
+        "absolute_change": "-3060",
+        "percentage_change": "-37.14",
+        "higher_is_better": true,
+        "status": "verified",
+        "calculation_id": "c_net_profit_change",
+        "evidence_id": "ev_kpi_net_profit"
+      },
+      {
+        "id": "kpi_operating_cash_flow",
+        "label": "Operating cash flow",
+        "format": "currency",
+        "current": "-2310",
+        "prior": "7905",
+        "absolute_change": "-10215",
+        "percentage_change": "-129.22",
+        "higher_is_better": true,
+        "status": "verified",
+        "calculation_id": "c_operating_cash_flow_change",
+        "evidence_id": "ev_kpi_operating_cash_flow"
+      },
+      {
+        "id": "kpi_net_margin",
+        "label": "Net profit margin",
+        "format": "percentage",
+        "current": "3.49",
+        "prior": "6.22",
+        "absolute_change": "-2.73",
+        "percentage_change": "-43.89",
+        "higher_is_better": true,
+        "status": "verified",
+        "calculation_id": "c_net_margin_current",
+        "evidence_id": "ev_ratio_net_margin"
+      },
+      {
+        "id": "kpi_current_ratio",
+        "label": "Current ratio",
+        "format": "ratio",
+        "current": "0.93",
+        "prior": "1.18",
+        "absolute_change": "-0.25",
+        "percentage_change": "-21.19",
+        "higher_is_better": true,
+        "status": "verified",
+        "calculation_id": "c_current_ratio_current",
+        "evidence_id": "ev_ratio_current_ratio"
+      },
+      {
+        "id": "kpi_debt_to_equity",
+        "label": "Debt-to-equity",
+        "format": "ratio",
+        "current": "1.13",
+        "prior": "0.81",
+        "absolute_change": "0.32",
+        "percentage_change": "39.51",
+        "higher_is_better": false,
+        "status": "verified",
+        "calculation_id": "c_debt_to_equity_current",
+        "evidence_id": "ev_ratio_debt_to_equity"
+      }
+    ],
+    "ratios": [
+      {
+        "id": "gross_margin",
+        "label": "Gross profit margin",
+        "unit": "percentage",
+        "current": "21",
+        "prior": "23",
+        "absolute_change": "-2",
+        "percentage_change": "-8.7",
+        "higher_is_better": true,
+        "current_calculation_id": "c_gross_margin_current",
+        "prior_calculation_id": "c_gross_margin_prior",
+        "evidence_id": "ev_ratio_gross_margin"
+      },
+      {
+        "id": "operating_margin",
+        "label": "Operating margin",
+        "unit": "percentage",
+        "current": "6.5",
+        "prior": "8.97",
+        "absolute_change": "-2.47",
+        "percentage_change": "-27.54",
+        "higher_is_better": true,
+        "current_calculation_id": "c_operating_margin_current",
+        "prior_calculation_id": "c_operating_margin_prior",
+        "evidence_id": "ev_ratio_operating_margin"
+      },
+      {
+        "id": "net_margin",
+        "label": "Net profit margin",
+        "unit": "percentage",
+        "current": "3.49",
+        "prior": "6.22",
+        "absolute_change": "-2.73",
+        "percentage_change": "-43.89",
+        "higher_is_better": true,
+        "current_calculation_id": "c_net_margin_current",
+        "prior_calculation_id": "c_net_margin_prior",
+        "evidence_id": "ev_ratio_net_margin"
+      },
+      {
+        "id": "current_ratio",
+        "label": "Current ratio",
+        "unit": "ratio",
+        "current": "0.93",
+        "prior": "1.18",
+        "absolute_change": "-0.25",
+        "percentage_change": "-21.19",
+        "higher_is_better": true,
+        "current_calculation_id": "c_current_ratio_current",
+        "prior_calculation_id": "c_current_ratio_prior",
+        "evidence_id": "ev_ratio_current_ratio"
+      },
+      {
+        "id": "debt_to_equity",
+        "label": "Debt-to-equity",
+        "unit": "ratio",
+        "current": "1.13",
+        "prior": "0.81",
+        "absolute_change": "0.32",
+        "percentage_change": "39.51",
+        "higher_is_better": false,
+        "current_calculation_id": "c_debt_to_equity_current",
+        "prior_calculation_id": "c_debt_to_equity_prior",
+        "evidence_id": "ev_ratio_debt_to_equity"
+      },
+      {
+        "id": "roa",
+        "label": "Return on assets",
+        "unit": "percentage",
+        "current": "3.65",
+        "prior": "6.4",
+        "absolute_change": "-2.75",
+        "percentage_change": "-42.97",
+        "higher_is_better": true,
+        "current_calculation_id": "c_roa_current",
+        "prior_calculation_id": "c_roa_prior",
+        "evidence_id": "ev_ratio_roa"
+      },
+      {
+        "id": "roe",
+        "label": "Return on equity",
+        "unit": "percentage",
+        "current": "10.74",
+        "prior": "17.58",
+        "absolute_change": "-6.84",
+        "percentage_change": "-38.91",
+        "higher_is_better": true,
+        "current_calculation_id": "c_roe_current",
+        "prior_calculation_id": "c_roe_prior",
+        "evidence_id": "ev_ratio_roe"
+      }
+    ],
+    "trends": [
+      {
+        "period": "FY2021",
+        "metric": "Revenue",
+        "value": "96400",
+        "format": "currency"
+      },
+      {
+        "period": "FY2022",
+        "metric": "Revenue",
+        "value": "108900",
+        "format": "currency"
+      },
+      {
+        "period": "FY2023",
+        "metric": "Revenue",
+        "value": "121300",
+        "format": "currency"
+      },
+      {
+        "period": "FY2024",
+        "metric": "Revenue",
+        "value": "132450",
+        "format": "currency"
+      },
+      {
+        "period": "FY2025",
+        "metric": "Revenue",
+        "value": "148200",
+        "format": "currency"
+      },
+      {
+        "period": "FY2021",
+        "metric": "Net profit",
+        "value": "5900",
+        "format": "currency"
+      },
+      {
+        "period": "FY2022",
+        "metric": "Net profit",
+        "value": "7100",
+        "format": "currency"
+      },
+      {
+        "period": "FY2023",
+        "metric": "Net profit",
+        "value": "7950",
+        "format": "currency"
+      },
+      {
+        "period": "FY2024",
+        "metric": "Net profit",
+        "value": "8240",
+        "format": "currency"
+      },
+      {
+        "period": "FY2025",
+        "metric": "Net profit",
+        "value": "5180",
+        "format": "currency"
+      },
+      {
+        "period": "FY2021",
+        "metric": "Operating cash flow",
+        "value": "6240",
+        "format": "currency"
+      },
+      {
+        "period": "FY2022",
+        "metric": "Operating cash flow",
+        "value": "6980",
+        "format": "currency"
+      },
+      {
+        "period": "FY2023",
+        "metric": "Operating cash flow",
+        "value": "7420",
+        "format": "currency"
+      },
+      {
+        "period": "FY2024",
+        "metric": "Operating cash flow",
+        "value": "7905",
+        "format": "currency"
+      },
+      {
+        "period": "FY2025",
+        "metric": "Operating cash flow",
+        "value": "-2310",
+        "format": "currency"
+      },
+      {
+        "period": "FY2021",
+        "metric": "Net profit margin",
+        "value": "6.12",
+        "format": "percentage"
+      },
+      {
+        "period": "FY2022",
+        "metric": "Net profit margin",
+        "value": "6.52",
+        "format": "percentage"
+      },
+      {
+        "period": "FY2023",
+        "metric": "Net profit margin",
+        "value": "6.55",
+        "format": "percentage"
+      },
+      {
+        "period": "FY2024",
+        "metric": "Net profit margin",
+        "value": "6.22",
+        "format": "percentage"
+      },
+      {
+        "period": "FY2025",
+        "metric": "Net profit margin",
+        "value": "3.49",
+        "format": "percentage"
+      },
+      {
+        "period": "FY2021",
+        "metric": "Gross profit margin",
+        "value": "24.1",
+        "format": "percentage"
+      },
+      {
+        "period": "FY2022",
+        "metric": "Gross profit margin",
+        "value": "23.8",
+        "format": "percentage"
+      },
+      {
+        "period": "FY2023",
+        "metric": "Gross profit margin",
+        "value": "23.4",
+        "format": "percentage"
+      },
+      {
+        "period": "FY2024",
+        "metric": "Gross profit margin",
+        "value": "23",
+        "format": "percentage"
+      },
+      {
+        "period": "FY2025",
+        "metric": "Gross profit margin",
+        "value": "21",
+        "format": "percentage"
+      }
+    ],
+    "anomalies": [
+      {
+        "id": "anomaly_profit_cash_divergence",
+        "rule_id": "RULE-PROFIT-CASH-DIVERGENCE",
+        "title": "Profit is positive while operating cash flow is negative",
+        "detail": "Net profit of 5,180 thousand MYR was reported for FY2025 while net cash from operating activities was −2,310 thousand MYR, a swing of 10,215 thousand MYR from FY2024.",
+        "severity": "high",
+        "fact_ids": [
+          "field_net_profit",
+          "field_operating_cash_flow"
+        ],
+        "calculation_ids": [
+          "c_operating_cash_flow_change"
+        ],
+        "follow_up": "Ask which working-capital movements or non-cash items explain the gap between reported profit and cash generated.",
+        "requires_manual_review": false,
+        "evidence_id": "ev_anomaly_profit_cash_divergence"
+      },
+      {
+        "id": "anomaly_revenue_up_profit_down",
+        "rule_id": "RULE-REVENUE-UP-PROFIT-DOWN",
+        "title": "Revenue increased while net profit fell",
+        "detail": "Revenue rose 11.89% to 148,200 thousand MYR while net profit fell 37.14% to 5,180 thousand MYR. Gross margin narrowed from 23.0% to 21.0%.",
+        "severity": "high",
+        "fact_ids": [
+          "field_revenue",
+          "field_net_profit",
+          "field_gross_profit"
+        ],
+        "calculation_ids": [
+          "c_revenue_change",
+          "c_net_profit_change",
+          "c_gross_margin_current",
+          "c_gross_margin_prior"
+        ],
+        "follow_up": "Request a cost breakdown to identify whether input costs, pricing, or one-off charges drove the margin compression.",
+        "requires_manual_review": false,
+        "evidence_id": "ev_anomaly_revenue_up_profit_down"
+      },
+      {
+        "id": "anomaly_working_capital_deficit",
+        "rule_id": "RULE-WORKING-CAPITAL-DEFICIT",
+        "title": "Current liabilities exceed current assets",
+        "detail": "Current ratio moved from 1.18x to 0.93x as current liabilities reached 66,950 thousand MYR against current assets of 62,400 thousand MYR.",
+        "severity": "high",
+        "fact_ids": [
+          "field_current_assets",
+          "field_current_liabilities"
+        ],
+        "calculation_ids": [
+          "c_current_ratio_current",
+          "c_current_ratio_prior"
+        ],
+        "follow_up": "Confirm the maturity profile of current liabilities and any undrawn facilities available within twelve months.",
+        "requires_manual_review": false,
+        "evidence_id": "ev_anomaly_working_capital_deficit"
+      },
+      {
+        "id": "anomaly_debt_increase",
+        "rule_id": "RULE-DEBT-INCREASE",
+        "title": "Borrowings rose materially between periods",
+        "detail": "Borrowings increased 43.12% from 38,150 to 54,600 thousand MYR, lifting debt-to-equity from 0.81x to 1.13x.",
+        "severity": "medium",
+        "fact_ids": [
+          "field_borrowings",
+          "field_shareholders_equity"
+        ],
+        "calculation_ids": [
+          "c_borrowings_change",
+          "c_debt_to_equity_current",
+          "c_debt_to_equity_prior"
+        ],
+        "follow_up": "Ask what the additional borrowings funded and whether covenants are tied to the debt-to-equity level.",
+        "requires_manual_review": false,
+        "evidence_id": "ev_anomaly_debt_increase"
+      },
+      {
+        "id": "anomaly_receivables_vs_revenue",
+        "rule_id": "RULE-RECEIVABLES-VS-REVENUE",
+        "title": "Receivables grew faster than revenue",
+        "detail": "Trade receivables grew 41.55% against revenue growth of 11.89%. The receivables figure is also inconsistent between the two uploaded sources.",
+        "severity": "medium",
+        "fact_ids": [
+          "field_trade_receivables",
+          "field_revenue"
+        ],
+        "calculation_ids": [
+          "c_receivables_change",
+          "c_revenue_change"
+        ],
+        "follow_up": "Request an ageing analysis and confirm which receivables figure is authoritative before relying on this comparison.",
+        "requires_manual_review": true,
+        "evidence_id": "ev_anomaly_receivables_vs_revenue"
+      },
+      {
+        "id": "anomaly_value_conflict",
+        "rule_id": "RULE-VALUE-CONFLICT",
+        "title": "Trade receivables conflict across two documents",
+        "detail": "The annual report states 41,900 thousand MYR while the trial balance states 40,150 thousand MYR. Both values are retained; neither was overwritten.",
+        "severity": "medium",
+        "fact_ids": [
+          "field_trade_receivables"
+        ],
+        "calculation_ids": [],
+        "follow_up": "Confirm with the preparer which source reflects the final audited position.",
+        "requires_manual_review": true,
+        "evidence_id": "ev_anomaly_value_conflict"
+      },
+      {
+        "id": "anomaly_unreadable_payables",
+        "rule_id": "RULE-LOW-CONFIDENCE-EXTRACTION",
+        "title": "Trade payables could not be read reliably",
+        "detail": "The trade payables table is a scanned region and returned low confidence. No value was substituted and payables-based ratios were not calculated.",
+        "severity": "low",
+        "fact_ids": [
+          "field_trade_payables"
+        ],
+        "calculation_ids": [],
+        "follow_up": "Re-upload a searchable copy of note 21 or enter the payables balance manually in a future reviewed workflow.",
+        "requires_manual_review": true,
+        "evidence_id": "ev_anomaly_unreadable_payables"
+      }
+    ],
+    "insights": [
+      {
+        "id": "insight_external_funding",
+        "title": "Growth is being funded by debt rather than operations",
+        "narrative": "Revenue grew for a fifth consecutive period, but operating cash flow turned negative while borrowings and receivables rose. On the extracted figures, FY2025 expansion was financed externally rather than self-funded.",
+        "fact_ids": [
+          "field_revenue",
+          "field_operating_cash_flow",
+          "field_borrowings",
+          "field_trade_receivables"
+        ],
+        "calculation_ids": [
+          "c_revenue_change",
+          "c_operating_cash_flow_change",
+          "c_borrowings_change",
+          "c_receivables_change"
+        ],
+        "tone": "concern",
+        "evidence_id": "ev_insight_external_funding"
+      },
+      {
+        "id": "insight_margin_compression",
+        "title": "Margin compression is the main driver of the profit fall",
+        "narrative": "Gross margin narrowed by two percentage points and operating margin by roughly two and a half, so profit fell despite higher sales. Because profit before tax is not disclosed separately, the split between operating and financing effects cannot be confirmed from this report alone.",
+        "fact_ids": [
+          "field_gross_profit",
+          "field_operating_profit",
+          "field_profit_before_tax",
+          "field_net_profit",
+          "field_revenue"
+        ],
+        "calculation_ids": [
+          "c_gross_margin_current",
+          "c_gross_margin_prior",
+          "c_operating_margin_current",
+          "c_operating_margin_prior",
+          "c_net_margin_current"
+        ],
+        "tone": "concern",
+        "evidence_id": "ev_insight_margin_compression"
+      },
+      {
+        "id": "insight_equity_resilience",
+        "title": "Equity base held up and revenue momentum continued",
+        "narrative": "Shareholders' equity increased year on year and the five-period revenue trend remains upward. Return on equity remains positive at 10.74%, though it is down from 17.58%.",
+        "fact_ids": [
+          "field_shareholders_equity",
+          "field_revenue"
+        ],
+        "calculation_ids": [
+          "c_roe_current",
+          "c_roe_prior",
+          "c_revenue_change"
+        ],
+        "tone": "strength",
+        "evidence_id": "ev_insight_equity_resilience"
+      }
+    ],
+    "follow_up_questions": [
+      "Which working-capital movements explain the negative operating cash flow in FY2025?",
+      "What did the additional 16,450 thousand MYR of borrowings fund?",
+      "Are any current liabilities expected to be refinanced within twelve months?",
+      "Which trade receivables figure is authoritative — the annual report or the trial balance?",
+      "Can a searchable copy of note 21 be supplied so trade payables can be extracted?"
+    ]
+  },
+  "evidence": {
+    "ev_field_revenue": {
+      "evidence_id": "ev_field_revenue",
+      "title": "Revenue",
+      "subtitle": "FY2025 compared with FY2024",
+      "fact_ids": [
+        "field_revenue"
+      ],
+      "calculation_ids": [],
+      "narrative": null,
+      "follow_up": null
+    },
+    "ev_field_cost_of_sales": {
+      "evidence_id": "ev_field_cost_of_sales",
+      "title": "Cost of sales",
+      "subtitle": "FY2025 compared with FY2024",
+      "fact_ids": [
+        "field_cost_of_sales"
+      ],
+      "calculation_ids": [],
+      "narrative": null,
+      "follow_up": null
+    },
+    "ev_field_gross_profit": {
+      "evidence_id": "ev_field_gross_profit",
+      "title": "Gross profit",
+      "subtitle": "FY2025 compared with FY2024",
+      "fact_ids": [
+        "field_gross_profit"
+      ],
+      "calculation_ids": [],
+      "narrative": null,
+      "follow_up": null
+    },
+    "ev_field_operating_profit": {
+      "evidence_id": "ev_field_operating_profit",
+      "title": "Operating profit",
+      "subtitle": "FY2025 compared with FY2024",
+      "fact_ids": [
+        "field_operating_profit"
+      ],
+      "calculation_ids": [],
+      "narrative": null,
+      "follow_up": null
+    },
+    "ev_field_profit_before_tax": {
+      "evidence_id": "ev_field_profit_before_tax",
+      "title": "Profit before tax",
+      "subtitle": "FY2025 compared with FY2024",
+      "fact_ids": [
+        "field_profit_before_tax"
+      ],
+      "calculation_ids": [],
+      "narrative": null,
+      "follow_up": null
+    },
+    "ev_field_net_profit": {
+      "evidence_id": "ev_field_net_profit",
+      "title": "Net profit",
+      "subtitle": "FY2025 compared with FY2024",
+      "fact_ids": [
+        "field_net_profit"
+      ],
+      "calculation_ids": [],
+      "narrative": null,
+      "follow_up": null
+    },
+    "ev_field_operating_cash_flow": {
+      "evidence_id": "ev_field_operating_cash_flow",
+      "title": "Operating cash flow",
+      "subtitle": "FY2025 compared with FY2024",
+      "fact_ids": [
+        "field_operating_cash_flow"
+      ],
+      "calculation_ids": [],
+      "narrative": null,
+      "follow_up": null
+    },
+    "ev_field_current_assets": {
+      "evidence_id": "ev_field_current_assets",
+      "title": "Current assets",
+      "subtitle": "FY2025 compared with FY2024",
+      "fact_ids": [
+        "field_current_assets"
+      ],
+      "calculation_ids": [],
+      "narrative": null,
+      "follow_up": null
+    },
+    "ev_field_non_current_assets": {
+      "evidence_id": "ev_field_non_current_assets",
+      "title": "Non-current assets",
+      "subtitle": "FY2025 compared with FY2024",
+      "fact_ids": [
+        "field_non_current_assets"
+      ],
+      "calculation_ids": [],
+      "narrative": null,
+      "follow_up": null
+    },
+    "ev_field_total_assets": {
+      "evidence_id": "ev_field_total_assets",
+      "title": "Total assets",
+      "subtitle": "FY2025 compared with FY2024",
+      "fact_ids": [
+        "field_total_assets"
+      ],
+      "calculation_ids": [],
+      "narrative": null,
+      "follow_up": null
+    },
+    "ev_field_current_liabilities": {
+      "evidence_id": "ev_field_current_liabilities",
+      "title": "Current liabilities",
+      "subtitle": "FY2025 compared with FY2024",
+      "fact_ids": [
+        "field_current_liabilities"
+      ],
+      "calculation_ids": [],
+      "narrative": null,
+      "follow_up": null
+    },
+    "ev_field_non_current_liabilities": {
+      "evidence_id": "ev_field_non_current_liabilities",
+      "title": "Non-current liabilities",
+      "subtitle": "FY2025 compared with FY2024",
+      "fact_ids": [
+        "field_non_current_liabilities"
+      ],
+      "calculation_ids": [],
+      "narrative": null,
+      "follow_up": null
+    },
+    "ev_field_total_liabilities": {
+      "evidence_id": "ev_field_total_liabilities",
+      "title": "Total liabilities",
+      "subtitle": "FY2025 compared with FY2024",
+      "fact_ids": [
+        "field_total_liabilities"
+      ],
+      "calculation_ids": [],
+      "narrative": null,
+      "follow_up": null
+    },
+    "ev_field_shareholders_equity": {
+      "evidence_id": "ev_field_shareholders_equity",
+      "title": "Shareholders' equity",
+      "subtitle": "FY2025 compared with FY2024",
+      "fact_ids": [
+        "field_shareholders_equity"
+      ],
+      "calculation_ids": [],
+      "narrative": null,
+      "follow_up": null
+    },
+    "ev_field_borrowings": {
+      "evidence_id": "ev_field_borrowings",
+      "title": "Borrowings",
+      "subtitle": "FY2025 compared with FY2024",
+      "fact_ids": [
+        "field_borrowings"
+      ],
+      "calculation_ids": [],
+      "narrative": null,
+      "follow_up": null
+    },
+    "ev_field_trade_receivables": {
+      "evidence_id": "ev_field_trade_receivables",
+      "title": "Trade receivables",
+      "subtitle": "FY2025 compared with FY2024",
+      "fact_ids": [
+        "field_trade_receivables"
+      ],
+      "calculation_ids": [],
+      "narrative": null,
+      "follow_up": null
+    },
+    "ev_field_trade_payables": {
+      "evidence_id": "ev_field_trade_payables",
+      "title": "Trade payables",
+      "subtitle": "FY2025 compared with FY2024",
+      "fact_ids": [
+        "field_trade_payables"
+      ],
+      "calculation_ids": [],
+      "narrative": null,
+      "follow_up": null
+    },
+    "ev_field_inventory": {
+      "evidence_id": "ev_field_inventory",
+      "title": "Inventory",
+      "subtitle": "FY2025 compared with FY2024",
+      "fact_ids": [
+        "field_inventory"
+      ],
+      "calculation_ids": [],
+      "narrative": null,
+      "follow_up": null
+    },
+    "ev_field_cash": {
+      "evidence_id": "ev_field_cash",
+      "title": "Cash and cash equivalents",
+      "subtitle": "FY2025 compared with FY2024",
+      "fact_ids": [
+        "field_cash"
+      ],
+      "calculation_ids": [],
+      "narrative": null,
+      "follow_up": null
+    },
+    "ev_kpi_revenue": {
+      "evidence_id": "ev_kpi_revenue",
+      "title": "Revenue",
+      "subtitle": "FY2025 compared with FY2024",
+      "fact_ids": [
+        "field_revenue"
+      ],
+      "calculation_ids": [
+        "c_revenue_change"
+      ],
+      "narrative": null,
+      "follow_up": null
+    },
+    "ev_kpi_net_profit": {
+      "evidence_id": "ev_kpi_net_profit",
+      "title": "Net profit",
+      "subtitle": "FY2025 compared with FY2024",
+      "fact_ids": [
+        "field_net_profit"
+      ],
+      "calculation_ids": [
+        "c_net_profit_change"
+      ],
+      "narrative": null,
+      "follow_up": null
+    },
+    "ev_kpi_operating_cash_flow": {
+      "evidence_id": "ev_kpi_operating_cash_flow",
+      "title": "Operating cash flow",
+      "subtitle": "FY2025 compared with FY2024",
+      "fact_ids": [
+        "field_operating_cash_flow"
+      ],
+      "calculation_ids": [
+        "c_operating_cash_flow_change"
+      ],
+      "narrative": null,
+      "follow_up": null
+    },
+    "ev_ratio_gross_margin": {
+      "evidence_id": "ev_ratio_gross_margin",
+      "title": "Gross profit margin",
+      "subtitle": "Deterministic ratio with current and prior inputs",
+      "fact_ids": [
+        "field_gross_profit",
+        "field_revenue"
+      ],
+      "calculation_ids": [
+        "c_gross_margin_current",
+        "c_gross_margin_prior"
+      ],
+      "narrative": null,
+      "follow_up": null
+    },
+    "ev_ratio_operating_margin": {
+      "evidence_id": "ev_ratio_operating_margin",
+      "title": "Operating margin",
+      "subtitle": "Deterministic ratio with current and prior inputs",
+      "fact_ids": [
+        "field_operating_profit",
+        "field_revenue"
+      ],
+      "calculation_ids": [
+        "c_operating_margin_current",
+        "c_operating_margin_prior"
+      ],
+      "narrative": null,
+      "follow_up": null
+    },
+    "ev_ratio_net_margin": {
+      "evidence_id": "ev_ratio_net_margin",
+      "title": "Net profit margin",
+      "subtitle": "Deterministic ratio with current and prior inputs",
+      "fact_ids": [
+        "field_net_profit",
+        "field_revenue"
+      ],
+      "calculation_ids": [
+        "c_net_margin_current",
+        "c_net_margin_prior"
+      ],
+      "narrative": null,
+      "follow_up": null
+    },
+    "ev_ratio_current_ratio": {
+      "evidence_id": "ev_ratio_current_ratio",
+      "title": "Current ratio",
+      "subtitle": "Deterministic ratio with current and prior inputs",
+      "fact_ids": [
+        "field_current_assets",
+        "field_current_liabilities"
+      ],
+      "calculation_ids": [
+        "c_current_ratio_current",
+        "c_current_ratio_prior"
+      ],
+      "narrative": null,
+      "follow_up": null
+    },
+    "ev_ratio_debt_to_equity": {
+      "evidence_id": "ev_ratio_debt_to_equity",
+      "title": "Debt-to-equity",
+      "subtitle": "Deterministic ratio with current and prior inputs",
+      "fact_ids": [
+        "field_borrowings",
+        "field_shareholders_equity"
+      ],
+      "calculation_ids": [
+        "c_debt_to_equity_current",
+        "c_debt_to_equity_prior"
+      ],
+      "narrative": null,
+      "follow_up": null
+    },
+    "ev_ratio_roa": {
+      "evidence_id": "ev_ratio_roa",
+      "title": "Return on assets",
+      "subtitle": "Deterministic ratio with current and prior inputs",
+      "fact_ids": [
+        "field_net_profit",
+        "field_total_assets"
+      ],
+      "calculation_ids": [
+        "c_roa_current",
+        "c_roa_prior"
+      ],
+      "narrative": null,
+      "follow_up": null
+    },
+    "ev_ratio_roe": {
+      "evidence_id": "ev_ratio_roe",
+      "title": "Return on equity",
+      "subtitle": "Deterministic ratio with current and prior inputs",
+      "fact_ids": [
+        "field_net_profit",
+        "field_shareholders_equity"
+      ],
+      "calculation_ids": [
+        "c_roe_current",
+        "c_roe_prior"
+      ],
+      "narrative": null,
+      "follow_up": null
+    },
+    "ev_anomaly_profit_cash_divergence": {
+      "evidence_id": "ev_anomaly_profit_cash_divergence",
+      "title": "Profit is positive while operating cash flow is negative",
+      "subtitle": "RULE-PROFIT-CASH-DIVERGENCE · high severity",
+      "fact_ids": [
+        "field_net_profit",
+        "field_operating_cash_flow"
+      ],
+      "calculation_ids": [
+        "c_operating_cash_flow_change"
+      ],
+      "narrative": null,
+      "follow_up": "Ask which working-capital movements or non-cash items explain the gap between reported profit and cash generated."
+    },
+    "ev_anomaly_revenue_up_profit_down": {
+      "evidence_id": "ev_anomaly_revenue_up_profit_down",
+      "title": "Revenue increased while net profit fell",
+      "subtitle": "RULE-REVENUE-UP-PROFIT-DOWN · high severity",
+      "fact_ids": [
+        "field_revenue",
+        "field_net_profit",
+        "field_gross_profit"
+      ],
+      "calculation_ids": [
+        "c_revenue_change",
+        "c_net_profit_change",
+        "c_gross_margin_current",
+        "c_gross_margin_prior"
+      ],
+      "narrative": null,
+      "follow_up": "Request a cost breakdown to identify whether input costs, pricing, or one-off charges drove the margin compression."
+    },
+    "ev_anomaly_working_capital_deficit": {
+      "evidence_id": "ev_anomaly_working_capital_deficit",
+      "title": "Current liabilities exceed current assets",
+      "subtitle": "RULE-WORKING-CAPITAL-DEFICIT · high severity",
+      "fact_ids": [
+        "field_current_assets",
+        "field_current_liabilities"
+      ],
+      "calculation_ids": [
+        "c_current_ratio_current",
+        "c_current_ratio_prior"
+      ],
+      "narrative": null,
+      "follow_up": "Confirm the maturity profile of current liabilities and any undrawn facilities available within twelve months."
+    },
+    "ev_anomaly_debt_increase": {
+      "evidence_id": "ev_anomaly_debt_increase",
+      "title": "Borrowings rose materially between periods",
+      "subtitle": "RULE-DEBT-INCREASE · medium severity",
+      "fact_ids": [
+        "field_borrowings",
+        "field_shareholders_equity"
+      ],
+      "calculation_ids": [
+        "c_borrowings_change",
+        "c_debt_to_equity_current",
+        "c_debt_to_equity_prior"
+      ],
+      "narrative": null,
+      "follow_up": "Ask what the additional borrowings funded and whether covenants are tied to the debt-to-equity level."
+    },
+    "ev_anomaly_receivables_vs_revenue": {
+      "evidence_id": "ev_anomaly_receivables_vs_revenue",
+      "title": "Receivables grew faster than revenue",
+      "subtitle": "RULE-RECEIVABLES-VS-REVENUE · medium severity",
+      "fact_ids": [
+        "field_trade_receivables",
+        "field_revenue"
+      ],
+      "calculation_ids": [
+        "c_receivables_change",
+        "c_revenue_change"
+      ],
+      "narrative": null,
+      "follow_up": "Request an ageing analysis and confirm which receivables figure is authoritative before relying on this comparison."
+    },
+    "ev_anomaly_value_conflict": {
+      "evidence_id": "ev_anomaly_value_conflict",
+      "title": "Trade receivables conflict across two documents",
+      "subtitle": "RULE-VALUE-CONFLICT · medium severity",
+      "fact_ids": [
+        "field_trade_receivables"
+      ],
+      "calculation_ids": [],
+      "narrative": null,
+      "follow_up": "Confirm with the preparer which source reflects the final audited position."
+    },
+    "ev_anomaly_unreadable_payables": {
+      "evidence_id": "ev_anomaly_unreadable_payables",
+      "title": "Trade payables could not be read reliably",
+      "subtitle": "RULE-LOW-CONFIDENCE-EXTRACTION · low severity",
+      "fact_ids": [
+        "field_trade_payables"
+      ],
+      "calculation_ids": [],
+      "narrative": null,
+      "follow_up": "Re-upload a searchable copy of note 21 or enter the payables balance manually in a future reviewed workflow."
+    },
+    "ev_insight_external_funding": {
+      "evidence_id": "ev_insight_external_funding",
+      "title": "Growth is being funded by debt rather than operations",
+      "subtitle": "AI interpretation traced to source facts and deterministic calculations",
+      "fact_ids": [
+        "field_revenue",
+        "field_operating_cash_flow",
+        "field_borrowings",
+        "field_trade_receivables"
+      ],
+      "calculation_ids": [
+        "c_revenue_change",
+        "c_operating_cash_flow_change",
+        "c_borrowings_change",
+        "c_receivables_change"
+      ],
+      "narrative": "Revenue grew for a fifth consecutive period, but operating cash flow turned negative while borrowings and receivables rose. On the extracted figures, FY2025 expansion was financed externally rather than self-funded.",
+      "follow_up": null
+    },
+    "ev_insight_margin_compression": {
+      "evidence_id": "ev_insight_margin_compression",
+      "title": "Margin compression is the main driver of the profit fall",
+      "subtitle": "AI interpretation traced to source facts and deterministic calculations",
+      "fact_ids": [
+        "field_gross_profit",
+        "field_operating_profit",
+        "field_profit_before_tax",
+        "field_net_profit",
+        "field_revenue"
+      ],
+      "calculation_ids": [
+        "c_gross_margin_current",
+        "c_gross_margin_prior",
+        "c_operating_margin_current",
+        "c_operating_margin_prior",
+        "c_net_margin_current"
+      ],
+      "narrative": "Gross margin narrowed by two percentage points and operating margin by roughly two and a half, so profit fell despite higher sales. Because profit before tax is not disclosed separately, the split between operating and financing effects cannot be confirmed from this report alone.",
+      "follow_up": null
+    },
+    "ev_insight_equity_resilience": {
+      "evidence_id": "ev_insight_equity_resilience",
+      "title": "Equity base held up and revenue momentum continued",
+      "subtitle": "AI interpretation traced to source facts and deterministic calculations",
+      "fact_ids": [
+        "field_shareholders_equity",
+        "field_revenue"
+      ],
+      "calculation_ids": [
+        "c_roe_current",
+        "c_roe_prior",
+        "c_revenue_change"
+      ],
+      "narrative": "Shareholders' equity increased year on year and the five-period revenue trend remains upward. Return on equity remains positive at 10.74%, though it is down from 17.58%.",
+      "follow_up": null
+    }
+  }
+}

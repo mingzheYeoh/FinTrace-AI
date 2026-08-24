@@ -1,0 +1,345 @@
+"use client"
+
+import { useMemo, useState } from "react"
+import {
+  Alert,
+  App,
+  Button,
+  Card,
+  Col,
+  Divider,
+  Empty,
+  Flex,
+  Row,
+  Space,
+  Tag,
+  Typography,
+  Upload,
+} from "antd"
+import type { UploadFile } from "antd"
+import {
+  CloudUploadOutlined,
+  DeleteOutlined,
+  FileExcelOutlined,
+  FilePdfOutlined,
+  FileTextOutlined,
+  InboxOutlined,
+  ThunderboltOutlined,
+} from "@ant-design/icons"
+import { FinTraceApiError } from "@/src/lib/api/client"
+import { useCreateAnalysis } from "@/src/features/analysis/queries"
+import { createDemoFiles } from "@/src/features/analysis/demo-files"
+
+const { Title, Text, Paragraph } = Typography
+const { Dragger } = Upload
+
+const ACCEPTED = [".pdf", ".xlsx", ".csv"]
+const MAX_BYTES = 20 * 1024 * 1024
+const MAX_FILES = 5
+
+/** A queued file: the real File object plus display metadata. */
+export interface StagedFile {
+  uid: string
+  name: string
+  sizeLabel: string
+  kind: "pdf" | "xlsx" | "csv"
+  file: File
+}
+
+function kindOf(name: string): StagedFile["kind"] | null {
+  const lower = name.toLowerCase()
+  if (lower.endsWith(".pdf")) return "pdf"
+  if (lower.endsWith(".xlsx")) return "xlsx"
+  if (lower.endsWith(".csv")) return "csv"
+  return null
+}
+
+function sizeLabel(bytes: number) {
+  if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  return `${Math.max(1, Math.round(bytes / 1024))} KB`
+}
+
+const kindIcon = {
+  pdf: <FilePdfOutlined style={{ color: "var(--alert)", fontSize: 18 }} />,
+  xlsx: <FileExcelOutlined style={{ color: "var(--good)", fontSize: 18 }} />,
+  csv: <FileTextOutlined style={{ color: "var(--ink-soft)", fontSize: 18 }} />,
+}
+
+/** Maps a contract error to guidance naming the specific rule that was hit. */
+function describeError(error: unknown): string {
+  if (error instanceof FinTraceApiError) {
+    switch (error.status) {
+      case 413:
+        return `${error.message} Remove the oversized file and run the analysis again.`
+      case 415:
+        return `${error.message} Convert the file to a searchable PDF, XLSX or CSV and try again.`
+      case 422:
+        return `${error.message} Adjust the queue to between one and five files.`
+      default:
+        return `${error.message} Your queued files are unchanged, so you can retry.`
+    }
+  }
+  return "The analysis request could not be sent. Check your connection and try again; your queued files are unchanged."
+}
+
+export function UploadPanel({
+  onStarted,
+}: {
+  onStarted: (analysisId: string, files: StagedFile[]) => void
+}) {
+  const { message } = App.useApp()
+  const [staged, setStaged] = useState<StagedFile[]>([])
+  const [rejection, setRejection] = useState<string | null>(null)
+
+  const createAnalysis = useCreateAnalysis()
+  const canStart = staged.length > 0 && !createAnalysis.isPending
+
+  const beforeUpload = (file: UploadFile & { size?: number; originFileObj?: File }) => {
+    const kind = kindOf(file.name)
+    const raw = (file as unknown as File) instanceof File ? (file as unknown as File) : file.originFileObj
+
+    if (!kind) {
+      setRejection(
+        `“${file.name}” was not accepted. FinTrace AI reads searchable PDF, XLSX and structured CSV files. The file was not queued and your current case is unchanged.`,
+      )
+      return Upload.LIST_IGNORE
+    }
+
+    if ((file.size ?? 0) > MAX_BYTES) {
+      setRejection(`“${file.name}” exceeds the 20 MB per-file limit for this prototype and was not queued.`)
+      return Upload.LIST_IGNORE
+    }
+
+    if (staged.some((s) => s.name === file.name)) {
+      message.info(`${file.name} is already queued — it was not added twice.`)
+      return Upload.LIST_IGNORE
+    }
+
+    if (staged.length >= MAX_FILES) {
+      setRejection(
+        `One analysis accepts up to ${MAX_FILES} files. “${file.name}” was not queued and the ${MAX_FILES} files already in the queue are unchanged.`,
+      )
+      return Upload.LIST_IGNORE
+    }
+
+    if (!raw) return Upload.LIST_IGNORE
+
+    setRejection(null)
+    setStaged((prev) => [
+      ...prev,
+      { uid: file.uid, name: file.name, sizeLabel: sizeLabel(file.size ?? 0), kind, file: raw },
+    ])
+    // Ant's own uploader is bypassed: the request is issued by createAnalysis.
+    return Upload.LIST_IGNORE
+  }
+
+  const loadSample = () => {
+    setRejection(null)
+    setStaged(
+      createDemoFiles().map((file, index) => ({
+        uid: `demo-${index}`,
+        name: file.name,
+        sizeLabel: sizeLabel(file.size),
+        kind: kindOf(file.name) ?? "pdf",
+        file,
+      })),
+    )
+    message.success("Loaded the synthetic demonstration file set.")
+  }
+
+  const remove = (uid: string) => setStaged((prev) => prev.filter((s) => s.uid !== uid))
+
+  const runAnalysis = () => {
+    if (staged.length === 0) {
+      setRejection("Queue at least one file before running an analysis.")
+      return
+    }
+    setRejection(null)
+    createAnalysis.mutate(
+      staged.map((s) => s.file),
+      {
+        onSuccess: (data) => onStarted(data.analysis_id, staged),
+        onError: (error) => setRejection(describeError(error)),
+      },
+    )
+  }
+
+  const summary = useMemo(() => {
+    const counts = staged.reduce<Record<string, number>>((acc, f) => {
+      acc[f.kind] = (acc[f.kind] ?? 0) + 1
+      return acc
+    }, {})
+    return Object.entries(counts)
+      .map(([k, n]) => `${n} ${k.toUpperCase()}`)
+      .join(" · ")
+  }, [staged])
+
+  return (
+    <Row gutter={[20, 20]}>
+      <Col xs={24} lg={14}>
+        <Card
+          title={
+            <Space size={8}>
+              <CloudUploadOutlined style={{ color: "var(--accent)" }} />
+              <span>New analysis</span>
+            </Space>
+          }
+          extra={
+            <Button size="small" icon={<ThunderboltOutlined />} onClick={loadSample}>
+              Use demo files
+            </Button>
+          }
+          className="upload-shell"
+        >
+          <Dragger
+            multiple
+            accept={ACCEPTED.join(",")}
+            beforeUpload={beforeUpload}
+            showUploadList={false}
+            style={{ padding: "12px 0" }}
+          >
+            <p className="ant-upload-drag-icon" style={{ marginBottom: 8 }}>
+              <InboxOutlined style={{ color: "var(--accent)" }} />
+            </p>
+            <p className="ant-upload-text" style={{ fontSize: 14.5, fontWeight: 500 }}>
+              Drop financial reports here, or click to browse
+            </p>
+            <p className="ant-upload-hint" style={{ fontSize: 12.5 }}>
+              Searchable PDF, XLSX or structured CSV · up to 20 MB per file · maximum {MAX_FILES} files
+            </p>
+          </Dragger>
+
+          {rejection && (
+            <Alert
+              type="error"
+              showIcon
+              closable
+              onClose={() => setRejection(null)}
+              style={{ marginTop: 16 }}
+              title="File not accepted"
+              description={rejection}
+            />
+          )}
+
+          <Divider style={{ margin: "20px 0 12px" }}>
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              {staged.length > 0
+                ? `${staged.length} of ${MAX_FILES} file${staged.length > 1 ? "s" : ""} queued · ${summary}`
+                : "Queue"}
+            </Text>
+          </Divider>
+
+          {staged.length === 0 ? (
+            <Empty
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              description={<Text type="secondary">No files queued yet</Text>}
+            />
+          ) : (
+            <Flex vertical component="ul" className="plain-list">
+              {staged.map((file) => (
+                <Flex key={file.uid} component="li" className="queue-row" align="center" gap={12}>
+                  {kindIcon[file.kind]}
+                  <Flex vertical gap={2} flex={1} style={{ minWidth: 0 }}>
+                    <span className="numeric file-name" style={{ fontSize: 13 }}>
+                      {file.name}
+                    </span>
+                    <Space size={6}>
+                      <Text type="secondary" style={{ fontSize: 12 }}>
+                        {file.sizeLabel}
+                      </Text>
+                      <Tag color="green" variant="outlined" style={{ fontSize: 11, marginInlineEnd: 0 }}>
+                        Validated
+                      </Tag>
+                    </Space>
+                  </Flex>
+                  <Button
+                    type="text"
+                    size="small"
+                    danger
+                    icon={<DeleteOutlined />}
+                    onClick={() => remove(file.uid)}
+                    aria-label={`Remove ${file.name}`}
+                    disabled={createAnalysis.isPending}
+                  />
+                </Flex>
+              ))}
+            </Flex>
+          )}
+
+          <Flex justify="space-between" align="center" gap={12} wrap style={{ marginTop: 20 }}>
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              A mock service worker intercepts this request inside the browser. No file leaves your device.
+            </Text>
+            <Button
+              type="primary"
+              size="large"
+              disabled={!canStart}
+              loading={createAnalysis.isPending}
+              onClick={runAnalysis}
+              icon={<ThunderboltOutlined />}
+            >
+              Run analysis
+            </Button>
+          </Flex>
+        </Card>
+      </Col>
+
+      <Col xs={24} lg={10}>
+        <Flex vertical gap={20}>
+          <Card title="What FinTrace AI extracts">
+            <Paragraph type="secondary" style={{ fontSize: 13, marginBottom: 14 }}>
+              Every figure is pulled from a specific page, sheet or cell and kept alongside its raw source text, so any
+              number on the dashboard can be traced back to the document it came from.
+            </Paragraph>
+            <Flex wrap gap={6}>
+              {[
+                "Revenue",
+                "Gross profit",
+                "Operating profit",
+                "Net profit",
+                "Operating cash flow",
+                "Current assets",
+                "Current liabilities",
+                "Total assets",
+                "Total liabilities",
+                "Equity",
+                "Borrowings",
+                "Receivables",
+                "Payables",
+                "Inventory",
+                "Cash",
+              ].map((field) => (
+                <Tag key={field} variant="filled" style={{ marginInlineEnd: 0 }}>
+                  {field}
+                </Tag>
+              ))}
+            </Flex>
+          </Card>
+
+          <Card title="How this prototype behaves">
+            <Flex vertical gap={10} component="ul" className="plain-list">
+              {[
+                "Ratios and period changes are computed in code, never guessed by a model.",
+                "Missing, unreadable, ambiguous and conflicting values are labelled separately — no figure is invented to fill a gap.",
+                "Conflicting values from two documents are both kept and flagged for review.",
+                "Anomalies are investigation prompts, not findings of fraud or insolvency.",
+              ].map((item) => (
+                <Flex key={item} component="li" align="flex-start" gap={9}>
+                  <span aria-hidden className="bullet-dot" />
+                  <Text style={{ fontSize: 13 }}>{item}</Text>
+                </Flex>
+              ))}
+            </Flex>
+          </Card>
+
+          <Alert
+            type="info"
+            showIcon
+            title="Phase 0 scope"
+            description="This build is the frontend prototype only. Authentication, storage, extraction services and the trusted-agent workflow are not connected yet."
+          />
+        </Flex>
+      </Col>
+    </Row>
+  )
+}

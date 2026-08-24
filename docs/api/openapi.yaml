@@ -1,0 +1,885 @@
+openapi: 3.1.0
+info:
+  title: FinTrace AI API
+  version: 1.1.0
+  description: >-
+    Contract-first API for the FinTrace AI Phase 0 frontend. During Phase 0,
+    Mock Service Worker implements this contract entirely in the browser.
+    No production upload, extraction, persistence, AI, Experian, or T3 service
+    is provided by this document.
+servers:
+  - url: /
+    description: Same-origin frontend and MSW mock
+tags:
+  - name: Analysis
+    description: Create an analysis and retrieve its status and result.
+  - name: Evidence
+    description: Retrieve the evidence binding for a traceable UI item.
+
+paths:
+  /api/v1/analyses:
+    post:
+      tags: [Analysis]
+      operationId: createAnalysis
+      summary: Create a financial-report analysis
+      description: >-
+        Accepts one to five PDF, XLSX, or CSV files. The Phase 0 MSW handler
+        intercepts this request in the browser; no file leaves the browser.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [files]
+              properties:
+                files:
+                  type: array
+                  minItems: 1
+                  maxItems: 5
+                  items:
+                    type: string
+                    contentMediaType: application/octet-stream
+                    format: binary
+            encoding:
+              files:
+                style: form
+                explode: true
+      responses:
+        "202":
+          description: Analysis accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateAnalysisResponse"
+              example:
+                analysis_id: anl_demo_001
+                document_ids: [doc_pdf_001, doc_xlsx_001]
+                status: accepted
+                status_url: /api/v1/analyses/anl_demo_001/status
+                result_url: /api/v1/analyses/anl_demo_001/result
+        "413":
+          $ref: "#/components/responses/FileTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedFileType"
+        "422":
+          $ref: "#/components/responses/InvalidFileSet"
+        "500":
+          $ref: "#/components/responses/InternalFailure"
+
+  /api/v1/analyses/{analysisId}/status:
+    get:
+      tags: [Analysis]
+      operationId: getAnalysisStatus
+      summary: Get analysis processing status
+      parameters:
+        - $ref: "#/components/parameters/AnalysisId"
+      responses:
+        "200":
+          description: Current processing state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalysisStatusResponse"
+        "404":
+          $ref: "#/components/responses/AnalysisNotFound"
+        "500":
+          $ref: "#/components/responses/InternalFailure"
+
+  /api/v1/analyses/{analysisId}/result:
+    get:
+      tags: [Analysis]
+      operationId: getAnalysisResult
+      summary: Get the completed analysis result
+      parameters:
+        - $ref: "#/components/parameters/AnalysisId"
+      responses:
+        "200":
+          description: Completed dashboard result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalysisResult"
+        "404":
+          $ref: "#/components/responses/AnalysisNotFound"
+        "409":
+          $ref: "#/components/responses/ResultNotReady"
+        "500":
+          $ref: "#/components/responses/InternalFailure"
+
+  /api/v1/analyses/{analysisId}/evidence/{evidenceId}:
+    get:
+      tags: [Evidence]
+      operationId: getEvidenceDetail
+      summary: Get the evidence binding for a dashboard item
+      description: >-
+        Returns the fact and calculation IDs associated with the clicked item.
+        The Phase 0 drawer resolves those IDs against the cached analysis result,
+        which contains source records and deterministic calculation provenance.
+      parameters:
+        - $ref: "#/components/parameters/AnalysisId"
+        - $ref: "#/components/parameters/EvidenceId"
+      responses:
+        "200":
+          description: Evidence binding
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EvidenceDetail"
+        "404":
+          $ref: "#/components/responses/EvidenceNotFound"
+        "500":
+          $ref: "#/components/responses/InternalFailure"
+
+components:
+  parameters:
+    AnalysisId:
+      name: analysisId
+      in: path
+      required: true
+      description: Opaque analysis identifier.
+      schema:
+        type: string
+        minLength: 1
+    EvidenceId:
+      name: evidenceId
+      in: path
+      required: true
+      description: Opaque evidence-binding identifier.
+      schema:
+        type: string
+        minLength: 1
+
+  responses:
+    AnalysisNotFound:
+      description: Analysis does not exist
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+          example:
+            code: ANALYSIS_NOT_FOUND
+            message: The requested analysis could not be found.
+            retryable: false
+    EvidenceNotFound:
+      description: Evidence binding does not exist
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+          example:
+            code: EVIDENCE_NOT_FOUND
+            message: The requested evidence trail could not be found.
+            retryable: false
+    ResultNotReady:
+      description: Analysis has not completed
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+          example:
+            code: RESULT_NOT_READY
+            message: The analysis result is not ready yet.
+            retryable: true
+    FileTooLarge:
+      description: At least one file exceeds 20 MB
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+          example:
+            code: FILE_TOO_LARGE
+            message: Each file must be 20 MB or smaller.
+            retryable: false
+    UnsupportedFileType:
+      description: At least one file has an unsupported type
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+          example:
+            code: UNSUPPORTED_FILE_TYPE
+            message: FinTrace AI accepts searchable PDF, XLSX, and structured CSV files.
+            retryable: false
+    InvalidFileSet:
+      description: File count or request shape is invalid
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+          example:
+            code: INVALID_FILE_SET
+            message: Select between one and five files for one analysis.
+            retryable: false
+    InternalFailure:
+      description: Unexpected processing or server failure
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+          example:
+            code: PROCESSING_FAILED
+            message: The analysis could not be completed. Start a new analysis and try again.
+            retryable: true
+
+  schemas:
+    ApiError:
+      type: object
+      additionalProperties: false
+      required: [code, message, retryable]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        retryable:
+          type: boolean
+        details:
+          type: object
+          additionalProperties: true
+
+    AnalysisLifecycleStatus:
+      type: string
+      enum:
+        - accepted
+        - validating
+        - extracting
+        - normalizing
+        - calculating
+        - detecting_exceptions
+        - generating_explanation
+        - completed
+        - failed
+
+    CompletionOutcome:
+      type: string
+      enum: [completed, completed_with_review_flags]
+
+    ValueStatus:
+      type: string
+      description: >-
+        Field-level availability and quality. Partial analysis coverage is
+        represented by ExtractionSummary, not by this enum.
+      enum:
+        - verified
+        - not_present
+        - not_readable
+        - ambiguous
+        - conflicting
+        - failed
+
+    Confidence:
+      type: string
+      enum: [high, medium, low]
+
+    UnitScale:
+      type: string
+      enum: [units, thousands, millions]
+
+    FileKind:
+      type: string
+      enum: [pdf, xlsx, csv]
+
+    ProcessingStageKey:
+      type: string
+      enum: [validate, extract, normalize, calculate, detect, explain]
+
+    ProcessingStageState:
+      type: string
+      enum: [pending, active, completed, warning, failed]
+
+    MetricFormat:
+      type: string
+      enum: [currency, percentage, ratio]
+
+    AnomalySeverity:
+      type: string
+      enum: [high, medium, low]
+
+    InsightTone:
+      type: string
+      enum: [strength, concern, neutral]
+
+    CreateAnalysisResponse:
+      type: object
+      additionalProperties: false
+      required: [analysis_id, document_ids, status, status_url, result_url]
+      properties:
+        analysis_id:
+          type: string
+        document_ids:
+          type: array
+          minItems: 1
+          maxItems: 5
+          items:
+            type: string
+        status:
+          $ref: "#/components/schemas/AnalysisLifecycleStatus"
+        status_url:
+          type: string
+        result_url:
+          type: string
+
+    ExtractionSummary:
+      type: object
+      additionalProperties: false
+      required: [targeted_fields, extracted_fields, manual_review_count]
+      properties:
+        targeted_fields:
+          type: integer
+          minimum: 0
+        extracted_fields:
+          type: integer
+          minimum: 0
+        manual_review_count:
+          type: integer
+          minimum: 0
+
+    ProcessingStage:
+      type: object
+      additionalProperties: false
+      required: [key, title, description, state, progress_percent, logs]
+      properties:
+        key:
+          $ref: "#/components/schemas/ProcessingStageKey"
+        title:
+          type: string
+        description:
+          type: string
+        state:
+          $ref: "#/components/schemas/ProcessingStageState"
+        progress_percent:
+          type: integer
+          minimum: 0
+          maximum: 100
+        logs:
+          type: array
+          items:
+            type: string
+
+    AnalysisStatusResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - analysis_id
+        - status
+        - progress_percent
+        - message
+        - stages
+        - extraction_summary
+      properties:
+        analysis_id:
+          type: string
+        status:
+          $ref: "#/components/schemas/AnalysisLifecycleStatus"
+        completion_outcome:
+          oneOf:
+            - $ref: "#/components/schemas/CompletionOutcome"
+            - type: "null"
+        progress_percent:
+          type: integer
+          minimum: 0
+          maximum: 100
+        active_stage:
+          oneOf:
+            - $ref: "#/components/schemas/ProcessingStageKey"
+            - type: "null"
+        message:
+          type: string
+        stages:
+          type: array
+          minItems: 6
+          maxItems: 6
+          items:
+            $ref: "#/components/schemas/ProcessingStage"
+        extraction_summary:
+          $ref: "#/components/schemas/ExtractionSummary"
+        error:
+          oneOf:
+            - $ref: "#/components/schemas/ApiError"
+            - type: "null"
+
+    DocumentSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+        - size_bytes
+        - size_label
+        - kind
+        - page_or_sheet_count
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        size_bytes:
+          type: integer
+          minimum: 0
+        size_label:
+          type: string
+        kind:
+          $ref: "#/components/schemas/FileKind"
+        page_or_sheet_count:
+          type: integer
+          minimum: 0
+
+    AnalysisSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - analysis_id
+        - company
+        - registration_id
+        - currency
+        - unit_scale
+        - current_period
+        - prior_period
+        - statement_date
+        - documents
+        - extraction_summary
+        - completion_outcome
+      properties:
+        analysis_id:
+          type: string
+        company:
+          type: string
+        registration_id:
+          type: string
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+        unit_scale:
+          $ref: "#/components/schemas/UnitScale"
+        current_period:
+          type: string
+        prior_period:
+          type: string
+        statement_date:
+          type: string
+          format: date
+        documents:
+          type: array
+          minItems: 1
+          maxItems: 5
+          items:
+            $ref: "#/components/schemas/DocumentSummary"
+        extraction_summary:
+          $ref: "#/components/schemas/ExtractionSummary"
+        completion_outcome:
+          $ref: "#/components/schemas/CompletionOutcome"
+
+    SourceLocation:
+      type: object
+      additionalProperties: false
+      required:
+        - document_id
+        - document_name
+        - locator
+        - raw_value
+        - excerpt
+        - extracted_at
+      properties:
+        document_id:
+          type: string
+        document_name:
+          type: string
+        locator:
+          type: string
+        raw_value:
+          type: string
+        excerpt:
+          type: string
+        extracted_at:
+          type: string
+          format: date-time
+
+    FinancialPeriodValue:
+      type: object
+      additionalProperties: false
+      required: [id, period, value, currency, unit_scale, sources]
+      properties:
+        id:
+          type: string
+        period:
+          type: string
+        value:
+          type: [string, "null"]
+          description: Decimal string in the declared unit scale, or null when unavailable.
+          pattern: "^-?[0-9]+(?:\\.[0-9]+)?$"
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+        unit_scale:
+          $ref: "#/components/schemas/UnitScale"
+        sources:
+          type: array
+          items:
+            $ref: "#/components/schemas/SourceLocation"
+
+    ConflictCandidate:
+      type: object
+      additionalProperties: false
+      required: [period, value, source]
+      properties:
+        period:
+          type: string
+        value:
+          type: string
+          pattern: "^-?[0-9]+(?:\\.[0-9]+)?$"
+        source:
+          $ref: "#/components/schemas/SourceLocation"
+
+    FinancialField:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - key
+        - label
+        - status
+        - confidence
+        - requires_manual_review
+        - current
+        - prior
+        - absolute_change
+        - percentage_change
+        - evidence_id
+      properties:
+        id:
+          type: string
+        key:
+          type: string
+        label:
+          type: string
+        status:
+          $ref: "#/components/schemas/ValueStatus"
+        confidence:
+          $ref: "#/components/schemas/Confidence"
+        requires_manual_review:
+          type: boolean
+        current:
+          $ref: "#/components/schemas/FinancialPeriodValue"
+        prior:
+          $ref: "#/components/schemas/FinancialPeriodValue"
+        absolute_change:
+          type: [string, "null"]
+          pattern: "^-?[0-9]+(?:\\.[0-9]+)?$"
+        percentage_change:
+          type: [string, "null"]
+          pattern: "^-?[0-9]+(?:\\.[0-9]+)?$"
+        conflict:
+          oneOf:
+            - $ref: "#/components/schemas/ConflictCandidate"
+            - type: "null"
+        note:
+          type: [string, "null"]
+        evidence_id:
+          type: string
+
+    Calculation:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - label
+        - formula
+        - input_value_ids
+        - substitution
+        - result
+        - unit
+        - period
+        - evidence_id
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        formula:
+          type: string
+        input_value_ids:
+          type: array
+          minItems: 1
+          items:
+            type: string
+        substitution:
+          type: string
+        result:
+          type: string
+          pattern: "^-?[0-9]+(?:\\.[0-9]+)?$"
+        unit:
+          type: string
+          enum: [percentage, ratio, currency]
+        period:
+          type: string
+        evidence_id:
+          type: string
+
+    KpiMetric:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - label
+        - format
+        - current
+        - prior
+        - absolute_change
+        - percentage_change
+        - higher_is_better
+        - status
+        - calculation_id
+        - evidence_id
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        format:
+          $ref: "#/components/schemas/MetricFormat"
+        current:
+          type: string
+          pattern: "^-?[0-9]+(?:\\.[0-9]+)?$"
+        prior:
+          type: string
+          pattern: "^-?[0-9]+(?:\\.[0-9]+)?$"
+        absolute_change:
+          type: string
+          pattern: "^-?[0-9]+(?:\\.[0-9]+)?$"
+        percentage_change:
+          type: string
+          pattern: "^-?[0-9]+(?:\\.[0-9]+)?$"
+        higher_is_better:
+          type: boolean
+        status:
+          $ref: "#/components/schemas/ValueStatus"
+        calculation_id:
+          type: string
+        evidence_id:
+          type: string
+
+    RatioComparison:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - label
+        - unit
+        - current
+        - prior
+        - absolute_change
+        - percentage_change
+        - higher_is_better
+        - current_calculation_id
+        - prior_calculation_id
+        - evidence_id
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        unit:
+          type: string
+          enum: [percentage, ratio]
+        current:
+          type: string
+          pattern: "^-?[0-9]+(?:\\.[0-9]+)?$"
+        prior:
+          type: string
+          pattern: "^-?[0-9]+(?:\\.[0-9]+)?$"
+        absolute_change:
+          type: string
+          pattern: "^-?[0-9]+(?:\\.[0-9]+)?$"
+        percentage_change:
+          type: string
+          pattern: "^-?[0-9]+(?:\\.[0-9]+)?$"
+        higher_is_better:
+          type: boolean
+        current_calculation_id:
+          type: string
+        prior_calculation_id:
+          type: string
+        evidence_id:
+          type: string
+
+    TrendPoint:
+      type: object
+      additionalProperties: false
+      required: [period, metric, value, format]
+      properties:
+        period:
+          type: string
+        metric:
+          type: string
+        value:
+          type: string
+          pattern: "^-?[0-9]+(?:\\.[0-9]+)?$"
+        format:
+          $ref: "#/components/schemas/MetricFormat"
+
+    Anomaly:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - rule_id
+        - title
+        - detail
+        - severity
+        - fact_ids
+        - calculation_ids
+        - follow_up
+        - requires_manual_review
+        - evidence_id
+      properties:
+        id:
+          type: string
+        rule_id:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+        severity:
+          $ref: "#/components/schemas/AnomalySeverity"
+        fact_ids:
+          type: array
+          items:
+            type: string
+        calculation_ids:
+          type: array
+          items:
+            type: string
+        follow_up:
+          type: string
+        requires_manual_review:
+          type: boolean
+        evidence_id:
+          type: string
+
+    Insight:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - title
+        - narrative
+        - fact_ids
+        - calculation_ids
+        - tone
+        - evidence_id
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        narrative:
+          type: string
+        fact_ids:
+          type: array
+          items:
+            type: string
+        calculation_ids:
+          type: array
+          items:
+            type: string
+        tone:
+          $ref: "#/components/schemas/InsightTone"
+        evidence_id:
+          type: string
+
+    AnalysisResult:
+      type: object
+      additionalProperties: false
+      required:
+        - summary
+        - fields
+        - calculations
+        - kpis
+        - ratios
+        - trends
+        - anomalies
+        - insights
+        - follow_up_questions
+      properties:
+        summary:
+          $ref: "#/components/schemas/AnalysisSummary"
+        fields:
+          type: array
+          minItems: 19
+          maxItems: 19
+          items:
+            $ref: "#/components/schemas/FinancialField"
+        calculations:
+          type: array
+          minItems: 19
+          maxItems: 19
+          items:
+            $ref: "#/components/schemas/Calculation"
+        kpis:
+          type: array
+          minItems: 6
+          maxItems: 6
+          items:
+            $ref: "#/components/schemas/KpiMetric"
+        ratios:
+          type: array
+          minItems: 7
+          maxItems: 7
+          items:
+            $ref: "#/components/schemas/RatioComparison"
+        trends:
+          type: array
+          minItems: 25
+          items:
+            $ref: "#/components/schemas/TrendPoint"
+        anomalies:
+          type: array
+          minItems: 7
+          maxItems: 7
+          items:
+            $ref: "#/components/schemas/Anomaly"
+        insights:
+          type: array
+          minItems: 3
+          maxItems: 3
+          items:
+            $ref: "#/components/schemas/Insight"
+        follow_up_questions:
+          type: array
+          minItems: 5
+          maxItems: 5
+          items:
+            type: string
+
+    EvidenceDetail:
+      type: object
+      additionalProperties: false
+      required:
+        - evidence_id
+        - title
+        - fact_ids
+        - calculation_ids
+      properties:
+        evidence_id:
+          type: string
+        title:
+          type: string
+        subtitle:
+          type: [string, "null"]
+        fact_ids:
+          type: array
+          items:
+            type: string
+        calculation_ids:
+          type: array
+          items:
+            type: string
+        narrative:
+          type: [string, "null"]
+        follow_up:
+          type: [string, "null"]
