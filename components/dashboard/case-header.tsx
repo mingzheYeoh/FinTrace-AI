@@ -40,7 +40,7 @@ export function CaseHeader({ onReset }: { onReset: () => void }) {
           </Flex>
         </Flex>
 
-        <Flex align="stretch" gap={0} className="case-metrics">
+        <Flex align="stretch" gap={16} wrap className="case-metrics">
           <Flex vertical gap={4} className="case-metric">
             <Text type="secondary" style={{ fontSize: 11.5, letterSpacing: 0.4, textTransform: "uppercase" }}>
               Comparison
@@ -50,7 +50,7 @@ export function CaseHeader({ onReset }: { onReset: () => void }) {
             </Text>
           </Flex>
 
-          <Divider orientation="vertical" style={{ height: "auto", marginInline: 20 }} />
+          <Divider orientation="vertical" style={{ height: "auto", marginInline: 4 }} />
 
           <Flex vertical gap={4} className="case-metric">
             <Text type="secondary" style={{ fontSize: 11.5, letterSpacing: 0.4, textTransform: "uppercase" }}>
@@ -70,7 +70,7 @@ export function CaseHeader({ onReset }: { onReset: () => void }) {
             </Flex>
           </Flex>
 
-          <Divider orientation="vertical" style={{ height: "auto", marginInline: 20 }} />
+          <Divider orientation="vertical" style={{ height: "auto", marginInline: 4 }} />
 
           <Flex vertical gap={4} className="case-metric">
             <Text type="secondary" style={{ fontSize: 11.5, letterSpacing: 0.4, textTransform: "uppercase" }}>

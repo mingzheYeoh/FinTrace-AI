@@ -127,6 +127,17 @@ body {
   min-width: 132px;
 }
 
+@media (max-width: 720px) {
+  /* Supporting copy and vertical rules go first when space is tight. */
+  .header-tagline {
+    display: none;
+  }
+
+  .case-metrics .ant-divider-vertical {
+    display: none;
+  }
+}
+
 /* Each anomaly is separated by a rule and flagged by a severity rail. */
 .anomaly-row {
   padding: 14px 0;

@@ -222,6 +222,8 @@ export function PeriodComparison() {
         dataSource={lineItems}
         pagination={false}
         rowClassName="traceable-row"
+        // Financial tables must not shrink their figures — scroll them instead.
+        scroll={{ x: "max-content" }}
         style={{ marginTop: 8 }}
         onRow={(row) => ({
           onClick: () =>
@@ -245,6 +247,7 @@ export function PeriodComparison() {
         dataSource={ratioComparison}
         pagination={false}
         rowClassName="traceable-row"
+        scroll={{ x: "max-content" }}
         style={{ marginTop: 8 }}
         onRow={(row) => ({
           onClick: () =>

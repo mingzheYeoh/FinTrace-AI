@@ -48,7 +48,12 @@ export function TrendCharts() {
     scale: { color: { range: [chartPalette[0]] } },
     axis: {
       x: { ...AXIS_STYLE, title: null },
-      y: { ...AXIS_STYLE, title: null, labelFormatter: (v: number) => formatNumber(v / 1000, 0) + "m" },
+      y: {
+        ...AXIS_STYLE,
+        title: null,
+        tickCount: 4,
+        labelFormatter: (v: number) => formatNumber(v / 1000, 0) + "m",
+      },
     },
     point: { size: 4, style: { lineWidth: 1, fillOpacity: 1 } },
     style: { lineWidth: 2 },
@@ -69,7 +74,12 @@ export function TrendCharts() {
     scale: { color: { range: [chartPalette[1], chartPalette[2]] } },
     axis: {
       x: { ...AXIS_STYLE, title: null },
-      y: { ...AXIS_STYLE, title: null, labelFormatter: (v: number) => formatNumber(v / 1000, 1) + "m" },
+      y: {
+        ...AXIS_STYLE,
+        title: null,
+        tickCount: 5,
+        labelFormatter: (v: number) => formatNumber(v / 1000, 1) + "m",
+      },
     },
     // Mark where operating cash flow crosses zero.
     annotations: [
@@ -126,7 +136,7 @@ export function TrendCharts() {
 
   return (
     <Row gutter={[20, 20]}>
-      <Col xs={24} xl={16}>
+      <Col xs={24} lg={16}>
         <Card
           title="Five-period trend"
           extra={
@@ -165,7 +175,7 @@ export function TrendCharts() {
         </Card>
       </Col>
 
-      <Col xs={24} xl={8}>
+      <Col xs={24} lg={8}>
         <Card title={`Divergence in ${CURRENT_PERIOD}`} style={{ height: "100%" }}>
           <Space orientation="vertical" size={16} style={{ width: "100%" }}>
             {[

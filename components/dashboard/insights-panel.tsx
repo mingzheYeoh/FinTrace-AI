@@ -33,6 +33,7 @@ export function InsightsPanel() {
     >
       <Alert
         type="info"
+        variant="outlined"
         showIcon
         style={{ marginBottom: 16 }}
         title="Narrative is model-generated"

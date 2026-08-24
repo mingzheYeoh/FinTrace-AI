@@ -1,6 +1,6 @@
 "use client"
 
-import { Layout, Space, Tag, Tooltip, Typography } from "antd"
+import { Flex, Layout, Space, Tag, Tooltip, Typography } from "antd"
 import { NodeIndexOutlined } from "@ant-design/icons"
 
 const { Header, Content, Footer } = Layout
@@ -10,13 +10,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <Layout style={{ minHeight: "100vh" }}>
       <Header>
-        <Space align="center" style={{ height: "100%", width: "100%", justifyContent: "space-between" }}>
-          <Space align="center" size={10}>
-            <NodeIndexOutlined style={{ color: "#4fd1c5", fontSize: 18 }} aria-hidden />
-            <Text style={{ color: "#fff", fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em" }}>FinTrace AI</Text>
-            <Text style={{ color: "#7d949c", fontSize: 12.5 }}>Traceable financial report analysis</Text>
-          </Space>
-          <Space size={8}>
+        <Flex align="center" justify="space-between" gap={12} style={{ height: "100%" }}>
+          <Flex align="center" gap={10} style={{ minWidth: 0 }}>
+            <NodeIndexOutlined style={{ color: "#4fd1c5", fontSize: 18, flex: "0 0 auto" }} aria-hidden />
+            <Text
+              style={{ color: "#fff", fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em", whiteSpace: "nowrap" }}
+            >
+              FinTrace AI
+            </Text>
+            {/* The tagline is supporting copy — drop it before the brand ever wraps. */}
+            <Text className="header-tagline" style={{ color: "#7d949c", fontSize: 12.5, whiteSpace: "nowrap" }}>
+              Traceable financial report analysis
+            </Text>
+          </Flex>
+          <Space size={8} style={{ flex: "0 0 auto" }}>
             <Tooltip title="Phase 0 prototype: no authentication, database or backend services are connected.">
               <Tag color="blue" variant="filled" style={{ marginInlineEnd: 0 }}>
                 Phase 0 prototype
@@ -28,7 +35,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </Tag>
             </Tooltip>
           </Space>
-        </Space>
+        </Flex>
       </Header>
 
       <Content>
