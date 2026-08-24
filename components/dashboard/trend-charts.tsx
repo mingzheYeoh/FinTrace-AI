@@ -1,11 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import dynamic from "next/dynamic"
 import { Card, Col, Row, Segmented, Skeleton, Space, Tag, Typography } from "antd"
-import { CURRENT_PERIOD, marginTrend, trendSeries } from "@/lib/mock-data"
+import type { TrendPoint } from "@/src/lib/api/client"
+import { toNumber } from "@/src/features/analysis/present"
 import { chartPalette } from "@/lib/theme"
-import { formatNumber } from "@/lib/format"
+import { formatNumber, formatPercent } from "@/lib/format"
 
 const { Text } = Typography
 
@@ -30,8 +31,54 @@ const AXIS_STYLE = {
 
 type Mode = "absolute" | "margin"
 
-export function TrendCharts() {
+/**
+ * The one currency metric an order of magnitude above the others. Kept as a
+ * named constant so the axis-splitting rationale below stays legible.
+ */
+const HEADLINE_METRIC = "Revenue"
+
+/** Chart-ready point: the contract carries decimal strings, Ant charts need numbers. */
+type PlotPoint = { period: string; metric: string; value: number }
+
+type Props = {
+  trends: TrendPoint[]
+}
+
+export function TrendCharts({ trends }: Props) {
   const [mode, setMode] = useState<Mode>("absolute")
+
+  const { headline, secondary, margins, periods, divergence } = useMemo(() => {
+    const plot = (points: TrendPoint[]): PlotPoint[] =>
+      points
+        .map((p) => ({ period: p.period, metric: p.metric, value: toNumber(p.value) }))
+        .filter((p): p is PlotPoint => p.value !== null)
+
+    const currency = trends.filter((t) => t.format === "currency")
+    const margins = plot(trends.filter((t) => t.format === "percentage"))
+    const periods = [...new Set(trends.map((t) => t.period))].sort()
+
+    const headline = plot(currency.filter((t) => t.metric === HEADLINE_METRIC))
+    const secondary = plot(currency.filter((t) => t.metric !== HEADLINE_METRIC))
+
+    /**
+     * Derived from the series rather than restated as literals, so the panel
+     * cannot drift out of step with the data it summarises.
+     */
+    const latest = periods.at(-1)
+    const previous = periods.at(-2)
+    const currencyPlot = plot(currency)
+    const divergence = [...new Set(currencyPlot.map((p) => p.metric))].map((metric) => {
+      const now = currencyPlot.find((p) => p.metric === metric && p.period === latest)?.value ?? null
+      const before = currencyPlot.find((p) => p.metric === metric && p.period === previous)?.value ?? null
+      const crossedZero = now !== null && before !== null && now < 0 && before >= 0
+      const delta = now !== null && before !== null && before !== 0 ? ((now - before) / Math.abs(before)) * 100 : null
+      return { metric, now, delta, crossedZero }
+    })
+
+    return { headline, secondary, margins, periods, divergence }
+  }, [trends])
+
+  const secondaryMetrics = [...new Set(secondary.map((p) => p.metric))]
 
   /**
    * Revenue is an order of magnitude larger than profit and cash flow, so a
@@ -40,7 +87,7 @@ export function TrendCharts() {
    * panel where a zero crossing is legible.
    */
   const revenueConfig = {
-    data: trendSeries.filter((d) => d.metric === "Revenue"),
+    data: headline,
     xField: "period",
     yField: "value",
     colorField: "metric",
@@ -59,14 +106,14 @@ export function TrendCharts() {
     style: { lineWidth: 2 },
     legend: false as const,
     tooltip: {
-      title: (d: { period: string }) => d.period,
+      title: (d: PlotPoint) => d.period,
       items: [{ channel: "y" as const, valueFormatter: (v: number) => `MYR ${formatNumber(v)}k` }],
     },
     interaction: { tooltip: { marker: true } },
   }
 
   const earningsConfig = {
-    data: trendSeries.filter((d) => d.metric !== "Revenue"),
+    data: secondary,
     xField: "period",
     yField: "value",
     colorField: "metric",
@@ -100,14 +147,14 @@ export function TrendCharts() {
       },
     },
     tooltip: {
-      title: (d: { period: string }) => d.period,
+      title: (d: PlotPoint) => d.period,
       items: [{ channel: "y" as const, valueFormatter: (v: number) => `MYR ${formatNumber(v)}k` }],
     },
     interaction: { tooltip: { marker: true } },
   }
 
   const marginConfig = {
-    data: marginTrend,
+    data: margins,
     xField: "period",
     yField: "value",
     colorField: "metric",
@@ -128,17 +175,19 @@ export function TrendCharts() {
       },
     },
     tooltip: {
-      title: (d: { period: string }) => d.period,
+      title: (d: PlotPoint) => d.period,
       items: [{ channel: "y" as const, valueFormatter: (v: number) => `${formatNumber(v, 2)}%` }],
     },
     interaction: { elementHighlight: { background: true } },
   }
 
+  const latestPeriod = periods.at(-1) ?? ""
+
   return (
     <Row gutter={[20, 20]}>
       <Col xs={24} lg={16}>
         <Card
-          title="Five-period trend"
+          title={`${periods.length}-period trend`}
           extra={
             <Segmented<Mode>
               size="small"
@@ -154,18 +203,20 @@ export function TrendCharts() {
           <div style={{ marginBottom: 10 }}>
             <Text type="secondary" style={{ fontSize: 12.5 }}>
               {mode === "absolute"
-                ? "Revenue continued rising through FY2025 while net profit and operating cash flow diverged sharply. The dashed line marks zero."
-                : "Gross and net margin have both compressed, with the steepest fall in FY2025."}
+                ? `Revenue continued rising through ${latestPeriod} while ${secondaryMetrics
+                    .join(" and ")
+                    .toLowerCase()} diverged sharply. The dashed line marks zero.`
+                : "Gross and net margin have both compressed, with the steepest fall in the latest period."}
             </Text>
           </div>
           {mode === "absolute" ? (
             <div>
               <div className="eyebrow" style={{ marginBottom: 2 }}>
-                Revenue · MYR
+                {HEADLINE_METRIC} · MYR
               </div>
               <Line {...revenueConfig} />
               <div className="eyebrow" style={{ margin: "10px 0 2px" }}>
-                Net profit and operating cash flow · MYR
+                {secondaryMetrics.join(" and ")} · MYR
               </div>
               <Line {...earningsConfig} />
             </div>
@@ -176,59 +227,51 @@ export function TrendCharts() {
       </Col>
 
       <Col xs={24} lg={8}>
-        <Card title={`Divergence in ${CURRENT_PERIOD}`} style={{ height: "100%" }}>
+        <Card title={`Divergence in ${latestPeriod}`} style={{ height: "100%" }}>
           <Space orientation="vertical" size={16} style={{ width: "100%" }}>
-            {[
-              {
-                label: "Revenue",
-                value: "+11.89%",
-                detail: "Fifth consecutive period of growth",
-                tone: "good" as const,
-              },
-              {
-                label: "Net profit",
-                value: "−37.14%",
-                detail: "First decline across the five periods",
-                tone: "bad" as const,
-              },
-              {
-                label: "Operating cash flow",
-                value: "−10,215k",
-                detail: "Crossed from positive to negative",
-                tone: "bad" as const,
-              },
-              {
-                label: "Borrowings",
-                value: "+43.12%",
-                detail: "Debt-to-equity moved 0.81x to 1.13x",
-                tone: "bad" as const,
-              },
-            ].map((row) => (
-              <div key={row.label} style={{ borderBottom: "1px solid var(--rule-soft)", paddingBottom: 12 }}>
-                <div className="eyebrow" style={{ marginBottom: 6 }}>
-                  {row.label}
+            {divergence.map((row) => {
+              const negative = row.crossedZero || (row.delta !== null && row.delta < 0)
+              return (
+                <div key={row.metric} style={{ borderBottom: "1px solid var(--rule-soft)", paddingBottom: 12 }}>
+                  <div className="eyebrow" style={{ marginBottom: 6 }}>
+                    {row.metric}
+                  </div>
+                  <Space align="baseline" size={8}>
+                    <span
+                      className="numeric"
+                      style={{
+                        fontSize: 19,
+                        fontWeight: 600,
+                        color: negative ? "var(--alert)" : "var(--good)",
+                      }}
+                    >
+                      {/* formatPercent already carries the sign. */}
+                      {row.delta === null ? "n/a" : formatPercent(row.delta)}
+                    </span>
+                    {row.now !== null && (
+                      <Text type="secondary" className="numeric" style={{ fontSize: 12.5 }}>
+                        {formatNumber(row.now)}k
+                      </Text>
+                    )}
+                  </Space>
+                  <div>
+                    <Text type="secondary" style={{ fontSize: 12.5 }}>
+                      {row.crossedZero
+                        ? "Crossed from positive to negative"
+                        : row.delta !== null && row.delta > 0
+                          ? "Higher than the prior period"
+                          : "Lower than the prior period"}
+                    </Text>
+                  </div>
                 </div>
-                <Space align="baseline" size={8}>
-                  <span
-                    className="numeric"
-                    style={{
-                      fontSize: 19,
-                      fontWeight: 600,
-                      color: row.tone === "good" ? "var(--good)" : "var(--alert)",
-                    }}
-                  >
-                    {row.value}
-                  </span>
-                </Space>
-                <div>
-                  <Text type="secondary" style={{ fontSize: 12.5 }}>
-                    {row.detail}
-                  </Text>
-                </div>
-              </div>
-            ))}
-            <Tag color="orange" variant="filled" style={{ marginInlineEnd: 0, whiteSpace: "normal", height: "auto", padding: "6px 8px" }}>
-              Growth in FY2025 was funded externally rather than by trading cash.
+              )
+            })}
+            <Tag
+              color="orange"
+              variant="filled"
+              style={{ marginInlineEnd: 0, whiteSpace: "normal", height: "auto", padding: "6px 8px" }}
+            >
+              Growth in {latestPeriod} was funded externally rather than by trading cash.
             </Tag>
           </Space>
         </Card>

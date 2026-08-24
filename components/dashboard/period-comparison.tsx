@@ -1,63 +1,42 @@
 "use client"
 
+import { useMemo } from "react"
 import { Card, Space, Table, Tag, Tooltip, Typography } from "antd"
 import type { TableProps } from "antd"
 import { ArrowDownOutlined, ArrowUpOutlined, LinkOutlined } from "@ant-design/icons"
-import { CURRENT_PERIOD, PRIOR_PERIOD, calculationById, facts, ratioComparison } from "@/lib/mock-data"
+import type { Calculation, FinancialField, RatioComparison } from "@/src/lib/api/client"
+import { toNumber } from "@/src/features/analysis/present"
 import { formatCurrency, formatNumber, statusMeta } from "@/lib/format"
 import { useEvidence } from "@/components/evidence/evidence-context"
 
 const { Text } = Typography
 
-// --- line item comparison -------------------------------------------------
-
-interface LineRow {
-  key: string
-  label: string
-  current: number | null
-  prior: number | null
-  currentFactId: string
-  priorFactId: string
-  status: (typeof facts)[number]["status"]
-  calcId?: string
-  note?: string
+type Props = {
+  fields: FinancialField[]
+  ratios: RatioComparison[]
+  calculations: Calculation[]
+  currentPeriod: string
+  priorPeriod: string
 }
 
-const lineItems: LineRow[] = [
-  { key: "revenue", label: "Revenue", current: 148_200, prior: 132_450, currentFactId: "f-rev-cur", priorFactId: "f-rev-pri", status: "verified", calcId: "c-rev-change" },
-  { key: "gross_profit", label: "Gross profit", current: 31_122, prior: 30_463, currentFactId: "f-gp-cur", priorFactId: "f-gp-pri", status: "verified" },
-  { key: "operating_profit", label: "Operating profit", current: 9_640, prior: 11_880, currentFactId: "f-op-cur", priorFactId: "f-op-pri", status: "verified" },
-  { key: "profit_before_tax", label: "Profit before tax", current: null, prior: null, currentFactId: "f-pbt-cur", priorFactId: "f-pbt-cur", status: "not_present", note: "Not disclosed separately in this source" },
-  { key: "net_profit", label: "Net profit", current: 5_180, prior: 8_240, currentFactId: "f-np-cur", priorFactId: "f-np-pri", status: "verified", calcId: "c-np-change" },
-  { key: "operating_cash_flow", label: "Operating cash flow", current: -2_310, prior: 7_905, currentFactId: "f-ocf-cur", priorFactId: "f-ocf-pri", status: "verified", calcId: "c-ocf-change" },
-  { key: "current_assets", label: "Current assets", current: 62_400, prior: 58_120, currentFactId: "f-ca-cur", priorFactId: "f-ca-pri", status: "verified" },
-  { key: "current_liabilities", label: "Current liabilities", current: 66_950, prior: 49_300, currentFactId: "f-cl-cur", priorFactId: "f-cl-pri", status: "verified" },
-  { key: "total_assets", label: "Total assets", current: 141_800, prior: 128_640, currentFactId: "f-ta-cur", priorFactId: "f-ta-pri", status: "verified" },
-  { key: "equity", label: "Shareholders' equity", current: 48_210, prior: 46_880, currentFactId: "f-eq-cur", priorFactId: "f-eq-pri", status: "verified" },
-  { key: "borrowings", label: "Borrowings", current: 54_600, prior: 38_150, currentFactId: "f-debt-cur", priorFactId: "f-debt-pri", status: "verified", calcId: "c-debt-change" },
-  { key: "receivables", label: "Trade receivables", current: 41_900, prior: 29_600, currentFactId: "f-recv-cur", priorFactId: "f-recv-pri", status: "conflicting", calcId: "c-recv-change", note: "Sources disagree — 40,150 in the trial balance" },
-  { key: "payables", label: "Trade payables", current: null, prior: null, currentFactId: "f-payables-cur", priorFactId: "f-payables-cur", status: "not_readable", note: "Scanned region, low OCR confidence" },
-  { key: "inventory", label: "Inventory", current: 14_310, prior: 12_040, currentFactId: "f-inv-cur", priorFactId: "f-inv-pri", status: "verified" },
-  { key: "cash", label: "Cash and equivalents", current: 4_820, prior: 11_240, currentFactId: "f-cash-cur", priorFactId: "f-cash-pri", status: "verified" },
-]
+function ChangeCell({
+  percentageChange,
+  invert = false,
+}: {
+  percentageChange: string | null
+  invert?: boolean
+}) {
+  const pct = toNumber(percentageChange)
 
-function ChangeCell({ current, prior, invert = false }: { current: number | null; prior: number | null; invert?: boolean }) {
-  if (current === null || prior === null) {
+  // A missing or unreadable figure is not comparable. Never imply a zero change.
+  if (pct === null) {
     return (
       <Text type="secondary" style={{ fontSize: 12.5 }}>
         Not comparable
       </Text>
     )
   }
-  if (prior === 0) {
-    return (
-      <Text type="secondary" style={{ fontSize: 12.5 }}>
-        n/a
-      </Text>
-    )
-  }
 
-  const pct = ((current - prior) / Math.abs(prior)) * 100
   const improving = invert ? pct < 0 : pct > 0
   const color = Math.abs(pct) < 0.01 ? "var(--ink-faint)" : improving ? "var(--good)" : "var(--alert)"
 
@@ -69,10 +48,26 @@ function ChangeCell({ current, prior, invert = false }: { current: number | null
   )
 }
 
-export function PeriodComparison() {
+/** Renders a period figure, or an em dash when the value could not be established. */
+function ValueCell({ value, emphasis = false }: { value: string | null; emphasis?: boolean }) {
+  const parsed = toNumber(value)
+  if (parsed === null) return <Text type="secondary">—</Text>
+  return (
+    <span
+      className="numeric"
+      style={{ color: parsed < 0 ? "var(--alert)" : undefined, fontWeight: emphasis ? 500 : undefined }}
+    >
+      {formatCurrency(parsed)}
+    </span>
+  )
+}
+
+export function PeriodComparison({ fields, ratios, calculations, currentPeriod, priorPeriod }: Props) {
   const { openEvidence } = useEvidence()
 
-  const lineColumns: TableProps<LineRow>["columns"] = [
+  const calcById = useMemo(() => new Map(calculations.map((c) => [c.id, c])), [calculations])
+
+  const lineColumns: TableProps<FinancialField>["columns"] = [
     {
       title: "Line item",
       dataIndex: "label",
@@ -81,51 +76,44 @@ export function PeriodComparison() {
         <Space size={6} wrap>
           <Text style={{ fontSize: 13.5 }}>{label}</Text>
           {row.status !== "verified" && (
-            <Tooltip title={row.note}>
-              <Tag color={statusMeta[row.status].color} variant="filled" style={{ fontSize: 11, marginInlineEnd: 0 }}>
+            <Tooltip title={row.note ?? undefined}>
+              <Tag
+                color={statusMeta[row.status].color}
+                variant="filled"
+                style={{ fontSize: 11, marginInlineEnd: 0 }}
+              >
                 {statusMeta[row.status].label}
               </Tag>
             </Tooltip>
+          )}
+          {row.requires_manual_review && (
+            <Tag variant="outlined" style={{ fontSize: 11, marginInlineEnd: 0 }}>
+              Review
+            </Tag>
           )}
         </Space>
       ),
     },
     {
-      title: CURRENT_PERIOD,
-      dataIndex: "current",
+      title: currentPeriod,
       key: "current",
       align: "right",
       width: 150,
-      render: (value: number | null) =>
-        value === null ? (
-          <Text type="secondary">—</Text>
-        ) : (
-          <span className="numeric" style={{ color: value < 0 ? "var(--alert)" : undefined, fontWeight: 500 }}>
-            {formatCurrency(value)}
-          </span>
-        ),
+      render: (_, row) => <ValueCell value={row.current.value} emphasis />,
     },
     {
-      title: PRIOR_PERIOD,
-      dataIndex: "prior",
+      title: priorPeriod,
       key: "prior",
       align: "right",
       width: 150,
-      render: (value: number | null) =>
-        value === null ? (
-          <Text type="secondary">—</Text>
-        ) : (
-          <span className="numeric" style={{ color: value < 0 ? "var(--alert)" : undefined }}>
-            {formatCurrency(value)}
-          </span>
-        ),
+      render: (_, row) => <ValueCell value={row.prior.value} />,
     },
     {
       title: "Change",
       key: "change",
       align: "right",
       width: 130,
-      render: (_, row) => <ChangeCell current={row.current} prior={row.prior} />,
+      render: (_, row) => <ChangeCell percentageChange={row.percentage_change} />,
     },
     {
       title: "",
@@ -140,13 +128,13 @@ export function PeriodComparison() {
     },
   ]
 
-  const ratioColumns: TableProps<(typeof ratioComparison)[number]>["columns"] = [
+  const ratioColumns: TableProps<RatioComparison>["columns"] = [
     {
       title: "Ratio",
       dataIndex: "label",
       key: "label",
       render: (label: string, row) => {
-        const calc = calculationById(row.currentCalc)
+        const calc = calcById.get(row.current_calculation_id)
         return (
           <div>
             <Text style={{ fontSize: 13.5 }}>{label}</Text>
@@ -158,37 +146,47 @@ export function PeriodComparison() {
       },
     },
     {
-      title: CURRENT_PERIOD,
-      dataIndex: "current",
+      title: currentPeriod,
       key: "current",
       align: "right",
       width: 130,
-      render: (value: number, row) => (
-        <span className="numeric" style={{ fontWeight: 500 }}>
-          {formatNumber(value, 2)}
-          {row.unit}
-        </span>
-      ),
+      render: (_, row) => {
+        const value = toNumber(row.current)
+        return value === null ? (
+          <Text type="secondary">—</Text>
+        ) : (
+          <span className="numeric" style={{ fontWeight: 500 }}>
+            {formatNumber(value, 2)}
+            {row.unit === "percentage" ? "%" : row.unit === "ratio" ? "x" : ""}
+          </span>
+        )
+      },
     },
     {
-      title: PRIOR_PERIOD,
-      dataIndex: "prior",
+      title: priorPeriod,
       key: "prior",
       align: "right",
       width: 130,
-      render: (value: number, row) => (
-        <span className="numeric">
-          {formatNumber(value, 2)}
-          {row.unit}
-        </span>
-      ),
+      render: (_, row) => {
+        const value = toNumber(row.prior)
+        return value === null ? (
+          <Text type="secondary">—</Text>
+        ) : (
+          <span className="numeric">
+            {formatNumber(value, 2)}
+            {row.unit === "percentage" ? "%" : row.unit === "ratio" ? "x" : ""}
+          </span>
+        )
+      },
     },
     {
       title: "Change",
       key: "change",
       align: "right",
       width: 130,
-      render: (_, row) => <ChangeCell current={row.current} prior={row.prior} invert={!row.higherIsBetter} />,
+      render: (_, row) => (
+        <ChangeCell percentageChange={row.percentage_change} invert={!row.higher_is_better} />
+      ),
     },
     {
       title: "",
@@ -205,7 +203,7 @@ export function PeriodComparison() {
 
   return (
     <Card
-      title={`Two-period comparison · ${CURRENT_PERIOD} vs ${PRIOR_PERIOD}`}
+      title={`Two-period comparison · ${currentPeriod} vs ${priorPeriod}`}
       extra={
         <Text type="secondary" style={{ fontSize: 12 }}>
           Select any row to open its evidence
@@ -218,21 +216,16 @@ export function PeriodComparison() {
       </div>
       <Table
         size="small"
+        rowKey="id"
         columns={lineColumns}
-        dataSource={lineItems}
+        dataSource={fields}
         pagination={false}
         rowClassName="traceable-row"
         // Financial tables must not shrink their figures — scroll them instead.
         scroll={{ x: "max-content" }}
         style={{ marginTop: 8 }}
         onRow={(row) => ({
-          onClick: () =>
-            openEvidence({
-              title: row.label,
-              subtitle: `${CURRENT_PERIOD} compared with ${PRIOR_PERIOD}.`,
-              factIds: row.currentFactId === row.priorFactId ? [row.currentFactId] : [row.currentFactId, row.priorFactId],
-              calculationIds: row.calcId ? [row.calcId] : [],
-            }),
+          onClick: () => openEvidence({ evidenceId: row.evidence_id, fallbackTitle: row.label }),
           tabIndex: 0,
           "aria-label": `${row.label}. Open source evidence.`,
         })}
@@ -243,23 +236,15 @@ export function PeriodComparison() {
       </div>
       <Table
         size="small"
+        rowKey="id"
         columns={ratioColumns}
-        dataSource={ratioComparison}
+        dataSource={ratios}
         pagination={false}
         rowClassName="traceable-row"
         scroll={{ x: "max-content" }}
         style={{ marginTop: 8 }}
         onRow={(row) => ({
-          onClick: () =>
-            openEvidence({
-              title: row.label,
-              subtitle: "Calculated in application code from stored normalized values.",
-              factIds: [
-                ...(calculationById(row.currentCalc)?.inputs ?? []),
-                ...(calculationById(row.priorCalc)?.inputs ?? []),
-              ],
-              calculationIds: [row.currentCalc, row.priorCalc],
-            }),
+          onClick: () => openEvidence({ evidenceId: row.evidence_id, fallbackTitle: row.label }),
           tabIndex: 0,
           "aria-label": `${row.label}. Open formula and inputs.`,
         })}

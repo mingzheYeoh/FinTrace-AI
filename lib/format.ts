@@ -1,4 +1,4 @@
-import type { Confidence, ValueStatus } from "./types"
+import type { Confidence, ValueStatus } from "@/src/lib/api/client"
 
 export function formatNumber(value: number, fractionDigits = 0) {
   return new Intl.NumberFormat("en-MY", {
@@ -7,7 +7,7 @@ export function formatNumber(value: number, fractionDigits = 0) {
   }).format(value)
 }
 
-/** Values in the mock set are in thousands; render them as such. */
+/** The API reports these figures with unit_scale "thousands"; render them as such. */
 export function formatCurrency(value: number, currency = "MYR") {
   const sign = value < 0 ? "−" : ""
   return `${sign}${currency} ${formatNumber(Math.abs(value))}k`

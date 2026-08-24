@@ -2,18 +2,23 @@
 
 import { Alert, Button, Card, Flex, Space, Tag, Typography } from "antd"
 import { BulbOutlined, FileSearchOutlined, QuestionCircleOutlined } from "@ant-design/icons"
-import { followUpQuestions, insights } from "@/lib/mock-data"
+import type { Insight, InsightTone } from "@/src/lib/api/client"
 import { useEvidence } from "@/components/evidence/evidence-context"
 
 const { Text, Paragraph } = Typography
 
-const toneMeta = {
+const toneMeta: Record<InsightTone, { label: string; color: string }> = {
   concern: { label: "Concern", color: "red" },
   strength: { label: "Strength", color: "green" },
   neutral: { label: "Observation", color: "default" },
-} as const
+}
 
-export function InsightsPanel() {
+type Props = {
+  insights: Insight[]
+  followUpQuestions: string[]
+}
+
+export function InsightsPanel({ insights, followUpQuestions }: Props) {
   const { openEvidence } = useEvidence()
 
   return (
@@ -62,11 +67,8 @@ export function InsightsPanel() {
                     icon={<FileSearchOutlined />}
                     onClick={() =>
                       openEvidence({
-                        title: insight.title,
-                        subtitle: "AI interpretation traced to source figures",
-                        factIds: insight.factIds,
-                        calculationIds: insight.calculationIds,
-                        narrative: insight.narrative,
+                        evidenceId: insight.evidence_id,
+                        fallbackTitle: insight.title,
                       })
                     }
                   >

@@ -62,9 +62,9 @@ export function AnalysisDashboard({ analysisId, onReset }: AnalysisDashboardProp
           <PeriodComparison
             fields={data.fields}
             ratios={data.ratios}
+            calculations={data.calculations}
             currentPeriod={data.summary.current_period}
             priorPeriod={data.summary.prior_period}
-            currency={data.summary.currency}
           />
         </Col>
         <Col xs={24} xl={11}>
