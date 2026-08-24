@@ -78,30 +78,141 @@ body {
   border-bottom: 1px solid #1d2f37;
 }
 
-/* Anomaly list items get a status-coloured left edge. */
-.anomaly-item {
-  border: 1px solid var(--rule-soft);
-  border-left-width: 3px;
+/* Panels carry a hairline rule rather than a shadow — this is an instrument, not a card wall. */
+.panel {
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+}
+
+.panel .ant-card-head {
+  min-height: 46px;
+  border-bottom: 1px solid var(--rule-soft);
+  padding-inline: 16px;
+}
+
+.panel .ant-card-head-title {
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.panel .ant-card-body {
+  padding: 16px;
+}
+
+/* Monospace metadata chip: case id, rule id, provenance labels. */
+.rule-tag {
+  font-family: var(--font-numeric);
+  font-size: 11px;
+  background: var(--shell);
+  color: var(--ink-soft);
+}
+
+.doc-chip {
+  font-family: var(--font-numeric);
+  font-size: 11.5px;
+  background: var(--shell);
+  color: var(--ink-soft);
+  padding-block: 3px;
+}
+
+.case-header .ant-card-body {
+  padding: 18px 20px;
+}
+
+.case-metrics {
+  padding-block: 2px;
+}
+
+.case-metric {
+  min-width: 132px;
+}
+
+/* Each anomaly is separated by a rule and flagged by a severity rail. */
+.anomaly-row {
+  padding: 14px 0;
+  border-top: 1px solid var(--rule-soft);
+}
+
+.anomaly-row:first-child {
+  border-top: none;
+  padding-top: 2px;
+}
+
+.anomaly-rail {
+  width: 3px;
+  align-self: stretch;
+  border-radius: 2px;
+  background: var(--ink-faint);
+  flex: 0 0 3px;
+}
+
+.anomaly-row[data-severity="high"] .anomaly-rail {
+  background: var(--alert);
+}
+
+.anomaly-row[data-severity="medium"] .anomaly-rail {
+  background: var(--caution);
+}
+
+.anomaly-followup {
+  background: var(--shell);
   border-radius: 4px;
-  padding: 14px 16px;
+  padding: 7px 10px;
+  color: var(--ink-soft);
+}
+
+.insight-card {
+  border: 1px solid var(--rule-soft);
+  border-radius: 5px;
+  padding: 14px;
   background: var(--surface);
-  transition: border-color 0.15s ease, background 0.15s ease;
 }
 
-.anomaly-item:hover {
-  background: #fbfcfc;
+.insight-card[data-tone="concern"] {
+  background: var(--alert-wash);
+  border-color: #f3dcde;
 }
 
-.anomaly-item.sev-high {
-  border-left-color: var(--alert);
+.insight-card[data-tone="strength"] {
+  background: #f1f9f4;
+  border-color: #d9ecdf;
 }
 
-.anomaly-item.sev-medium {
-  border-left-color: var(--caution);
+.followup-block {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--rule-soft);
 }
 
-.anomaly-item.sev-low {
-  border-left-color: var(--ink-faint);
+/* Semantic lists without browser markers or antd's deprecated List. */
+.plain-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bullet-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+  margin-top: 7px;
+  flex: 0 0 5px;
+}
+
+.queue-row {
+  padding: 11px 0;
+  border-top: 1px solid var(--rule-soft);
+}
+
+.queue-row:first-child {
+  border-top: none;
+}
+
+.file-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .upload-shell .ant-upload-drag {

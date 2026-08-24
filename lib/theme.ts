@@ -6,7 +6,7 @@ import type { ThemeConfig } from "antd"
  * exception states so a coloured cell always means something.
  */
 export const fintraceTheme: ThemeConfig = {
-  cssVar: true,
+  cssVar: { prefix: "ft" },
   token: {
     colorPrimary: "#0f6f78",
     colorInfo: "#0f6f78",

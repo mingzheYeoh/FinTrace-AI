@@ -99,7 +99,7 @@ export function ProcessingView({ files, onComplete, onCancel }: ProcessingViewPr
 
     return {
       title: stage.title,
-      description: (
+      content: (
         <Text type="secondary" style={{ fontSize: 12.5 }}>
           {stage.description}
         </Text>
@@ -156,7 +156,7 @@ export function ProcessingView({ files, onComplete, onCancel }: ProcessingViewPr
           </Flex>
 
           <Steps
-            direction="vertical"
+            orientation="vertical"
             size="small"
             current={finished ? total : stageIndex}
             items={stepItems}
@@ -213,7 +213,7 @@ export function ProcessingView({ files, onComplete, onCancel }: ProcessingViewPr
             <Alert
               type="warning"
               showIcon
-              message="3 items need manual review"
+              title="3 items need manual review"
               description="One value conflicts across the two documents, one scanned table returned low OCR confidence, and one field is not disclosed in the source. No figure was substituted in any of these cases."
             />
           )}

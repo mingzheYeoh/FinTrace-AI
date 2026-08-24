@@ -108,7 +108,7 @@ function FactBlock({ fact }: { fact: FinancialFact }) {
           showIcon
           icon={<WarningOutlined />}
           style={{ marginTop: 12 }}
-          message="A second source reports a different value"
+          title="A second source reports a different value"
           description={
             <div>
               <div style={{ marginBottom: 8 }}>
@@ -196,7 +196,7 @@ export function EvidenceDrawer() {
     <Drawer
       open={open}
       onClose={closeEvidence}
-      width={620}
+      size={620}
       title={
         <div>
           <div className="eyebrow" style={{ marginBottom: 2 }}>
@@ -280,7 +280,7 @@ export function EvidenceDrawer() {
           <Alert
             type="info"
             showIcon
-            message="Decision-support observation"
+            title="Decision-support observation"
             description="These figures and observations support review. They are not an audit finding, a solvency conclusion or investment advice."
           />
         </Flex>

@@ -10,7 +10,6 @@ import {
   Divider,
   Empty,
   Flex,
-  List,
   Row,
   Space,
   Tag,
@@ -164,7 +163,7 @@ export function UploadPanel({ onStart }: { onStart: (files: StagedFile[]) => voi
               closable
               onClose={() => setRejection(null)}
               style={{ marginTop: 16 }}
-              message="Unsupported file"
+              title="Unsupported file"
               description={rejection}
             />
           )}
@@ -181,45 +180,34 @@ export function UploadPanel({ onStart }: { onStart: (files: StagedFile[]) => voi
               description={<Text type="secondary">No files queued yet</Text>}
             />
           ) : (
-            <List
-              size="small"
-              dataSource={staged}
-              rowKey="uid"
-              renderItem={(file) => (
-                <List.Item
-                  actions={[
-                    <Button
-                      key="remove"
-                      type="text"
-                      size="small"
-                      danger
-                      icon={<DeleteOutlined />}
-                      onClick={() => remove(file.uid)}
-                      aria-label={`Remove ${file.name}`}
-                    />,
-                  ]}
-                >
-                  <List.Item.Meta
-                    avatar={kindIcon[file.kind]}
-                    title={
-                      <span className="numeric" style={{ fontSize: 13 }}>
-                        {file.name}
-                      </span>
-                    }
-                    description={
-                      <Space size={6}>
-                        <Text type="secondary" style={{ fontSize: 12 }}>
-                          {file.sizeLabel}
-                        </Text>
-                        <Tag color="green" variant="outlined" style={{ fontSize: 11 }}>
-                          Validated
-                        </Tag>
-                      </Space>
-                    }
+            <Flex vertical component="ul" className="plain-list">
+              {staged.map((file) => (
+                <Flex key={file.uid} component="li" className="queue-row" align="center" gap={12}>
+                  {kindIcon[file.kind]}
+                  <Flex vertical gap={2} flex={1} style={{ minWidth: 0 }}>
+                    <span className="numeric file-name" style={{ fontSize: 13 }}>
+                      {file.name}
+                    </span>
+                    <Space size={6}>
+                      <Text type="secondary" style={{ fontSize: 12 }}>
+                        {file.sizeLabel}
+                      </Text>
+                      <Tag color="green" variant="outlined" style={{ fontSize: 11, marginInlineEnd: 0 }}>
+                        Validated
+                      </Tag>
+                    </Space>
+                  </Flex>
+                  <Button
+                    type="text"
+                    size="small"
+                    danger
+                    icon={<DeleteOutlined />}
+                    onClick={() => remove(file.uid)}
+                    aria-label={`Remove ${file.name}`}
                   />
-                </List.Item>
-              )}
-            />
+                </Flex>
+              ))}
+            </Flex>
           )}
 
           <Flex justify="space-between" align="center" gap={12} wrap style={{ marginTop: 20 }}>
@@ -271,40 +259,25 @@ export function UploadPanel({ onStart }: { onStart: (files: StagedFile[]) => voi
           </Card>
 
           <Card title="How this prototype behaves">
-            <List
-              size="small"
-              split={false}
-              dataSource={[
+            <Flex vertical gap={10} component="ul" className="plain-list">
+              {[
                 "Ratios and period changes are computed in code, never guessed by a model.",
                 "Missing, unreadable, ambiguous and conflicting values are labelled separately — no figure is invented to fill a gap.",
                 "Conflicting values from two documents are both kept and flagged for review.",
                 "Anomalies are investigation prompts, not findings of fraud or insolvency.",
-              ]}
-              renderItem={(item) => (
-                <List.Item style={{ paddingInline: 0, paddingBlock: 6, border: "none" }}>
-                  <Space align="start" size={8}>
-                    <span
-                      aria-hidden
-                      style={{
-                        width: 5,
-                        height: 5,
-                        borderRadius: "50%",
-                        background: "var(--accent)",
-                        marginTop: 8,
-                        flex: "0 0 auto",
-                      }}
-                    />
-                    <Text style={{ fontSize: 13 }}>{item}</Text>
-                  </Space>
-                </List.Item>
-              )}
-            />
+              ].map((item) => (
+                <Flex key={item} component="li" align="flex-start" gap={9}>
+                  <span aria-hidden className="bullet-dot" />
+                  <Text style={{ fontSize: 13 }}>{item}</Text>
+                </Flex>
+              ))}
+            </Flex>
           </Card>
 
           <Alert
             type="info"
             showIcon
-            message="Phase 0 scope"
+            title="Phase 0 scope"
             description="This build is the frontend prototype only. Authentication, storage, extraction services and the trusted-agent workflow are not connected yet."
           />
         </Flex>

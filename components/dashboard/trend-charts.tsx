@@ -33,27 +33,50 @@ type Mode = "absolute" | "margin"
 export function TrendCharts() {
   const [mode, setMode] = useState<Mode>("absolute")
 
-  const absoluteConfig = {
-    data: trendSeries,
+  /**
+   * Revenue is an order of magnitude larger than profit and cash flow, so a
+   * shared linear axis would flatten exactly the divergence this chart exists
+   * to show. Revenue gets its own panel; profit and cash flow share a second
+   * panel where a zero crossing is legible.
+   */
+  const revenueConfig = {
+    data: trendSeries.filter((d) => d.metric === "Revenue"),
     xField: "period",
     yField: "value",
     colorField: "metric",
-    height: 300,
-    scale: { color: { range: chartPalette } },
+    height: 168,
+    scale: { color: { range: [chartPalette[0]] } },
     axis: {
       x: { ...AXIS_STYLE, title: null },
-      y: {
-        ...AXIS_STYLE,
-        title: null,
-        labelFormatter: (v: number) => formatNumber(v / 1000, 0) + "m",
-      },
+      y: { ...AXIS_STYLE, title: null, labelFormatter: (v: number) => formatNumber(v / 1000, 0) + "m" },
+    },
+    point: { size: 4, style: { lineWidth: 1, fillOpacity: 1 } },
+    style: { lineWidth: 2 },
+    legend: false as const,
+    tooltip: {
+      title: (d: { period: string }) => d.period,
+      items: [{ channel: "y" as const, valueFormatter: (v: number) => `MYR ${formatNumber(v)}k` }],
+    },
+    interaction: { tooltip: { marker: true } },
+  }
+
+  const earningsConfig = {
+    data: trendSeries.filter((d) => d.metric !== "Revenue"),
+    xField: "period",
+    yField: "value",
+    colorField: "metric",
+    height: 190,
+    scale: { color: { range: [chartPalette[1], chartPalette[2]] } },
+    axis: {
+      x: { ...AXIS_STYLE, title: null },
+      y: { ...AXIS_STYLE, title: null, labelFormatter: (v: number) => formatNumber(v / 1000, 1) + "m" },
     },
     // Mark where operating cash flow crosses zero.
     annotations: [
       {
         type: "lineY",
         data: [0],
-        style: { stroke: "#b3323c", strokeOpacity: 0.45, lineWidth: 1, lineDash: [3, 3] },
+        style: { stroke: "#b3323c", strokeOpacity: 0.5, lineWidth: 1, lineDash: [3, 3] },
       },
     ],
     point: { size: 4, style: { lineWidth: 1, fillOpacity: 1 } },
@@ -68,14 +91,9 @@ export function TrendCharts() {
     },
     tooltip: {
       title: (d: { period: string }) => d.period,
-      items: [
-        {
-          channel: "y" as const,
-          valueFormatter: (v: number) => `MYR ${formatNumber(v)}k`,
-        },
-      ],
+      items: [{ channel: "y" as const, valueFormatter: (v: number) => `MYR ${formatNumber(v)}k` }],
     },
-    interaction: { tooltip: { marker: true }, elementHighlight: { background: true } },
+    interaction: { tooltip: { marker: true } },
   }
 
   const marginConfig = {
@@ -130,13 +148,26 @@ export function TrendCharts() {
                 : "Gross and net margin have both compressed, with the steepest fall in FY2025."}
             </Text>
           </div>
-          {mode === "absolute" ? <Line {...absoluteConfig} /> : <Column {...marginConfig} />}
+          {mode === "absolute" ? (
+            <div>
+              <div className="eyebrow" style={{ marginBottom: 2 }}>
+                Revenue · MYR
+              </div>
+              <Line {...revenueConfig} />
+              <div className="eyebrow" style={{ margin: "10px 0 2px" }}>
+                Net profit and operating cash flow · MYR
+              </div>
+              <Line {...earningsConfig} />
+            </div>
+          ) : (
+            <Column {...marginConfig} />
+          )}
         </Card>
       </Col>
 
       <Col xs={24} xl={8}>
         <Card title={`Divergence in ${CURRENT_PERIOD}`} style={{ height: "100%" }}>
-          <Space direction="vertical" size={16} style={{ width: "100%" }}>
+          <Space orientation="vertical" size={16} style={{ width: "100%" }}>
             {[
               {
                 label: "Revenue",
