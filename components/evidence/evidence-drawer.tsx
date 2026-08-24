@@ -279,7 +279,6 @@ export function EvidenceDrawer() {
 
           <Alert
             type="info"
-            variant="outlined"
             showIcon
             title="Decision-support observation"
             description="These figures and observations support review. They are not an audit finding, a solvency conclusion or investment advice."

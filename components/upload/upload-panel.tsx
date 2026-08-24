@@ -276,7 +276,6 @@ export function UploadPanel({ onStart }: { onStart: (files: StagedFile[]) => voi
 
           <Alert
             type="info"
-            variant="outlined"
             showIcon
             title="Phase 0 scope"
             description="This build is the frontend prototype only. Authentication, storage, extraction services and the trusted-agent workflow are not connected yet."

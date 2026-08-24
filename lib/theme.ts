@@ -60,6 +60,15 @@ export const fintraceTheme: ThemeConfig = {
     Drawer: {
       paddingLG: 20,
     },
+    Alert: {
+      // The teal colorInfo is dark enough to read as a filled banner, so the
+      // info variant gets an explicit light wash and legible ink.
+      colorInfoBg: "#eef5f6",
+      colorInfoBorder: "#cfe1e3",
+      colorInfo: "#0f6f78",
+      colorText: "#111c22",
+      colorTextHeading: "#111c22",
+    },
   },
 }
 
