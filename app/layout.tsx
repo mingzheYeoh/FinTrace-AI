@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next"
 import { Inter, IBM_Plex_Mono } from "next/font/google"
 import { AntdRegistry } from "@ant-design/nextjs-registry"
 import { ThemeProvider } from "@/components/theme-provider"
+import { ApiProvider } from "@/components/api-provider"
 import "./globals.css"
 
 const inter = Inter({
@@ -35,7 +36,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${inter.variable} ${plexMono.variable}`}>
       <body>
         <AntdRegistry>
-          <ThemeProvider>{children}</ThemeProvider>
+          <ThemeProvider>
+            <ApiProvider>{children}</ApiProvider>
+          </ThemeProvider>
         </AntdRegistry>
       </body>
     </html>

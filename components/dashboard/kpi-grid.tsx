@@ -2,32 +2,31 @@
 
 import { Card, Col, Flex, Row, Space, Tag, Tooltip, Typography } from "antd"
 import { ArrowDownOutlined, ArrowUpOutlined, LinkOutlined, MinusOutlined } from "@ant-design/icons"
-import { CURRENT_PERIOD, PRIOR_PERIOD, kpis } from "@/lib/mock-data"
-import { formatMetric, percentChange } from "@/lib/format"
+import { formatMetric } from "@/lib/format"
 import { useEvidence } from "@/components/evidence/evidence-context"
-import type { KpiMetric } from "@/lib/types"
+import type { KpiMetric } from "@/src/lib/api/client"
+import { toFormatKind, toNumber } from "@/src/features/analysis/present"
 
 const { Text } = Typography
 
 function changeTone(change: number | null, higherIsBetter: boolean) {
-  if (change === null || Math.abs(change) < 0.01) return { color: "var(--ink-faint)", good: null as boolean | null }
+  if (change === null || Math.abs(change) < 0.01) return { color: "var(--ink-faint)" }
   const improving = change > 0 === higherIsBetter
-  return { color: improving ? "var(--good)" : "var(--alert)", good: improving }
+  return { color: improving ? "var(--good)" : "var(--alert)" }
 }
 
-function KpiCard({ kpi }: { kpi: KpiMetric }) {
+function KpiCard({ kpi, currency }: { kpi: KpiMetric; currency: string }) {
   const { openEvidence } = useEvidence()
-  const change = percentChange(kpi.current, kpi.prior)
-  const tone = changeTone(change, kpi.higherIsBetter)
-  const crossedZero = kpi.current !== null && kpi.prior !== null && kpi.current < 0 && kpi.prior >= 0
 
-  const trace = () =>
-    openEvidence({
-      title: kpi.label,
-      subtitle: `${CURRENT_PERIOD} compared with ${PRIOR_PERIOD}, traced to source values and formula.`,
-      factIds: [kpi.factId, kpi.factId.replace("-cur", "-pri")],
-      calculationIds: kpi.calculationId ? [kpi.calculationId] : [],
-    })
+  // The API supplies authoritative changes; components never recompute them.
+  const current = toNumber(kpi.current)
+  const prior = toNumber(kpi.prior)
+  const change = toNumber(kpi.percentage_change)
+  const tone = changeTone(change, kpi.higher_is_better)
+  const format = toFormatKind(kpi.format)
+  const crossedZero = current !== null && prior !== null && current < 0 && prior >= 0
+
+  const trace = () => openEvidence({ evidenceId: kpi.evidence_id, fallbackTitle: kpi.label })
 
   return (
     <Card
@@ -62,10 +61,10 @@ function KpiCard({ kpi }: { kpi: KpiMetric }) {
           fontWeight: 600,
           lineHeight: 1.2,
           marginTop: 10,
-          color: kpi.current !== null && kpi.current < 0 ? "var(--alert)" : "var(--ink)",
+          color: current !== null && current < 0 ? "var(--alert)" : "var(--ink)",
         }}
       >
-        {kpi.current === null ? "—" : formatMetric(kpi.current, kpi.format, kpi.currency)}
+        {current === null ? "—" : formatMetric(current, format, currency)}
       </div>
 
       <Flex align="center" gap={8} style={{ marginTop: 10 }} wrap>
@@ -77,12 +76,10 @@ function KpiCard({ kpi }: { kpi: KpiMetric }) {
           ) : (
             <ArrowDownOutlined aria-hidden />
           )}
-          <span className="numeric">
-            {change === null ? "n/a" : `${Math.abs(change).toFixed(2)}%`}
-          </span>
+          <span className="numeric">{change === null ? "n/a" : `${Math.abs(change).toFixed(2)}%`}</span>
         </Space>
         <Text type="secondary" style={{ fontSize: 12 }}>
-          vs {kpi.prior === null ? "—" : formatMetric(kpi.prior, kpi.format, kpi.currency)} in {PRIOR_PERIOD}
+          vs {prior === null ? "—" : formatMetric(prior, format, currency)} prior period
         </Text>
       </Flex>
 
@@ -95,12 +92,12 @@ function KpiCard({ kpi }: { kpi: KpiMetric }) {
   )
 }
 
-export function KpiGrid() {
+export function KpiGrid({ kpis, currency }: { kpis: KpiMetric[]; currency: string }) {
   return (
     <Row gutter={[12, 12]}>
       {kpis.map((kpi) => (
-        <Col key={kpi.key} xs={24} sm={12} lg={8} xl={4}>
-          <KpiCard kpi={kpi} />
+        <Col key={kpi.id} xs={24} sm={12} lg={8} xl={4}>
+          <KpiCard kpi={kpi} currency={currency} />
         </Col>
       ))}
     </Row>

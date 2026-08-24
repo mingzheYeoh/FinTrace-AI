@@ -2,10 +2,9 @@
 
 import { Badge, Button, Card, Flex, Space, Tag, Typography } from "antd"
 import { AlertOutlined, ArrowRightOutlined, FileSearchOutlined } from "@ant-design/icons"
-import { anomalies } from "@/lib/mock-data"
 import { severityMeta } from "@/lib/format"
 import { useEvidence } from "@/components/evidence/evidence-context"
-import type { Anomaly } from "@/lib/types"
+import type { Anomaly } from "@/src/lib/api/client"
 
 const { Text, Paragraph } = Typography
 
@@ -26,9 +25,9 @@ function AnomalyRow({ anomaly }: { anomaly: Anomaly }) {
               {meta.label}
             </Tag>
             <Tag variant="filled" style={{ marginInlineEnd: 0 }} className="rule-tag">
-              {anomaly.rule}
+              {anomaly.rule_id}
             </Tag>
-            {anomaly.needsManualReview ? (
+            {anomaly.requires_manual_review ? (
               <Tag color="gold" variant="filled" style={{ marginInlineEnd: 0 }}>
                 Manual review
               </Tag>
@@ -42,7 +41,7 @@ function AnomalyRow({ anomaly }: { anomaly: Anomaly }) {
           <Flex align="center" gap={8} className="anomaly-followup">
             <ArrowRightOutlined style={{ fontSize: 11, opacity: 0.6 }} />
             <Text style={{ fontSize: 12.5 }} italic>
-              {anomaly.followUp}
+              {anomaly.follow_up}
             </Text>
           </Flex>
 
@@ -51,13 +50,7 @@ function AnomalyRow({ anomaly }: { anomaly: Anomaly }) {
               size="small"
               icon={<FileSearchOutlined />}
               onClick={() =>
-                openEvidence({
-                  title: anomaly.title,
-                  subtitle: `${anomaly.rule} · ${meta.label} severity`,
-                  factIds: anomaly.factIds,
-                  calculationIds: anomaly.calculationIds,
-                  followUp: anomaly.followUp,
-                })
+                openEvidence({ evidenceId: anomaly.evidence_id, fallbackTitle: anomaly.title })
               }
             >
               Trace evidence
@@ -69,7 +62,7 @@ function AnomalyRow({ anomaly }: { anomaly: Anomaly }) {
   )
 }
 
-export function AnomalyPanel() {
+export function AnomalyPanel({ anomalies }: { anomalies: Anomaly[] }) {
   const highCount = anomalies.filter((a) => a.severity === "high").length
 
   return (

@@ -2,28 +2,33 @@
 
 import { createContext, useCallback, useContext, useMemo, useState } from "react"
 
+/**
+ * Drawer visibility is UI-only state. The evidence payload itself is fetched by
+ * `getEvidenceDetail` from the drawer, keyed on the evidence id recorded here.
+ */
 export interface EvidenceRequest {
-  /** Heading for the drawer */
-  title: string
-  /** Optional sub-heading describing what is being traced */
-  subtitle?: string
-  factIds: string[]
-  calculationIds: string[]
-  /** AI narrative shown in a clearly separated section, when relevant */
-  narrative?: string
-  followUp?: string
+  evidenceId: string
+  /** Fallback heading shown while the request is in flight. */
+  fallbackTitle: string
 }
 
 interface EvidenceContextValue {
   open: boolean
   request: EvidenceRequest | null
+  analysisId: string | null
   openEvidence: (request: EvidenceRequest) => void
   closeEvidence: () => void
 }
 
 const EvidenceContext = createContext<EvidenceContextValue | null>(null)
 
-export function EvidenceProvider({ children }: { children: React.ReactNode }) {
+export function EvidenceProvider({
+  analysisId,
+  children,
+}: {
+  analysisId: string | null
+  children: React.ReactNode
+}) {
   const [request, setRequest] = useState<EvidenceRequest | null>(null)
   const [open, setOpen] = useState(false)
 
@@ -34,7 +39,10 @@ export function EvidenceProvider({ children }: { children: React.ReactNode }) {
 
   const closeEvidence = useCallback(() => setOpen(false), [])
 
-  const value = useMemo(() => ({ open, request, openEvidence, closeEvidence }), [open, request, openEvidence, closeEvidence])
+  const value = useMemo(
+    () => ({ open, request, analysisId, openEvidence, closeEvidence }),
+    [open, request, analysisId, openEvidence, closeEvidence],
+  )
 
   return <EvidenceContext.Provider value={value}>{children}</EvidenceContext.Provider>
 }

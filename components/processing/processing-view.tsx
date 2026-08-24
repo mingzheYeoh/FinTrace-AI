@@ -1,16 +1,18 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useMemo } from "react"
 import { Alert, Button, Card, Col, Flex, Progress, Row, Space, Steps, Tag, Typography } from "antd"
 import {
   CheckCircleFilled,
+  CloseCircleFilled,
   FileExcelOutlined,
   FilePdfOutlined,
   FileTextOutlined,
   LoadingOutlined,
   WarningFilled,
 } from "@ant-design/icons"
-import { processingStages } from "@/lib/mock-data"
+import { FinTraceApiError } from "@/src/lib/api/client"
+import { useAnalysisResult, useAnalysisStatus } from "@/src/features/analysis/queries"
 import type { StagedFile } from "@/components/upload/upload-panel"
 
 const { Title, Text, Paragraph } = Typography
@@ -22,98 +24,107 @@ const kindIcon = {
 }
 
 interface ProcessingViewProps {
+  analysisId: string
   files: StagedFile[]
   onComplete: () => void
   onCancel: () => void
 }
 
-export function ProcessingView({ files, onComplete, onCancel }: ProcessingViewProps) {
-  const [stageIndex, setStageIndex] = useState(0)
-  const [stageProgress, setStageProgress] = useState(0)
-  const [finished, setFinished] = useState(false)
-  const timers = useRef<ReturnType<typeof setTimeout>[]>([])
+export function ProcessingView({ analysisId, files, onComplete, onCancel }: ProcessingViewProps) {
+  const statusQuery = useAnalysisStatus(analysisId)
+  const status = statusQuery.data
 
-  const total = processingStages.length
+  const isCompleted = status?.status === "completed"
+  const isFailed = status?.status === "failed"
 
-  useEffect(() => {
-    let cancelled = false
-    let index = 0
+  // Result is fetched only after terminal completion, per the contract.
+  const resultQuery = useAnalysisResult(analysisId, isCompleted)
 
-    const runStage = () => {
-      if (cancelled) return
-      if (index >= total) {
-        setFinished(true)
-        return
-      }
+  const statusError = statusQuery.error
+  const analysisMissing = statusError instanceof FinTraceApiError && statusError.status === 404
 
-      const stage = processingStages[index]
-      const started = Date.now()
-      setStageIndex(index)
-      setStageProgress(0)
+  // A 409 means the result is not ready; processing state is preserved.
+  const resultError = resultQuery.error
+  const resultNotReady = resultError instanceof FinTraceApiError && resultError.status === 409
 
-      const tick = setInterval(() => {
-        if (cancelled) return
-        const pct = Math.min(100, ((Date.now() - started) / stage.duration) * 100)
-        setStageProgress(pct)
-        if (pct >= 100) {
-          clearInterval(tick)
-          index += 1
-          runStage()
-        }
-      }, 60)
+  const stages = status?.stages ?? []
+  const total = stages.length || 6
+  const activeIndex = useMemo(() => {
+    if (!status) return 0
+    if (status.status === "completed") return total
+    const index = stages.findIndex((stage) => stage.key === status.active_stage)
+    return index >= 0 ? index : 0
+  }, [stages, status, total])
 
-      timers.current.push(tick as unknown as ReturnType<typeof setTimeout>)
-    }
+  const readyForDashboard = isCompleted && resultQuery.isSuccess
 
-    runStage()
-
-    return () => {
-      cancelled = true
-      timers.current.forEach((t) => clearInterval(t as unknown as number))
-      timers.current = []
-    }
-  }, [total])
-
-  const overall = useMemo(() => {
-    if (finished) return 100
-    return Math.round(((stageIndex + stageProgress / 100) / total) * 100)
-  }, [finished, stageIndex, stageProgress, total])
-
-  const visibleLogs = useMemo(() => {
-    const lines: { text: string; stage: string }[] = []
-    processingStages.forEach((stage, i) => {
-      if (i < stageIndex || finished) {
-        stage.logs.forEach((text) => lines.push({ text, stage: stage.title }))
-      } else if (i === stageIndex) {
-        const shown = Math.ceil((stageProgress / 100) * stage.logs.length)
-        stage.logs.slice(0, shown).forEach((text) => lines.push({ text, stage: stage.title }))
-      }
-    })
-    return lines
-  }, [stageIndex, stageProgress, finished])
-
-  const stepItems = processingStages.map((stage, i) => {
-    const done = finished || i < stageIndex
-    const active = !finished && i === stageIndex
-    const isWarningStage = stage.status === "warning" && done
-
-    return {
-      title: stage.title,
-      content: (
-        <Text type="secondary" style={{ fontSize: 12.5 }}>
-          {stage.description}
-        </Text>
+  const visibleLogs = useMemo(
+    () =>
+      stages.flatMap((stage) =>
+        stage.logs.map((text) => ({ text, stage: stage.title })),
       ),
-      status: done ? ("finish" as const) : active ? ("process" as const) : ("wait" as const),
-      icon: active ? (
+    [stages],
+  )
+
+  const stepItems = stages.map((stage) => ({
+    title: stage.title,
+    content: (
+      <Text type="secondary" style={{ fontSize: 12.5 }}>
+        {stage.description}
+      </Text>
+    ),
+    status:
+      stage.state === "failed"
+        ? ("error" as const)
+        : stage.state === "completed" || stage.state === "warning"
+          ? ("finish" as const)
+          : stage.state === "active"
+            ? ("process" as const)
+            : ("wait" as const),
+    icon:
+      stage.state === "active" ? (
         <LoadingOutlined style={{ color: "var(--accent)" }} />
-      ) : isWarningStage ? (
+      ) : stage.state === "failed" ? (
+        <CloseCircleFilled style={{ color: "var(--alert)" }} />
+      ) : stage.state === "warning" ? (
         <WarningFilled style={{ color: "var(--caution)" }} />
-      ) : done ? (
+      ) : stage.state === "completed" ? (
         <CheckCircleFilled style={{ color: "var(--good)" }} />
       ) : undefined,
-    }
-  })
+  }))
+
+  const summary = status?.extraction_summary
+  const reviewCount = summary?.manual_review_count ?? 0
+  const withReviewFlags = status?.completion_outcome === "completed_with_review_flags"
+
+  const headline = isFailed
+    ? "Analysis failed"
+    : isCompleted
+      ? "Extraction and analysis complete"
+      : (stages[activeIndex]?.title ?? "Starting analysis")
+
+  const subline = isFailed
+    ? (status?.error?.message ?? "The analysis could not be completed.")
+    : isCompleted && summary
+      ? `${summary.extracted_fields} of ${summary.targeted_fields} target fields extracted. ${reviewCount} item${reviewCount === 1 ? "" : "s"} require manual review before the figures are relied on.`
+      : (stages[activeIndex]?.description ?? status?.message ?? "Preparing the pipeline…")
+
+  if (analysisMissing) {
+    return (
+      <Card title="Analysis unavailable">
+        <Alert
+          type="error"
+          showIcon
+          title="This analysis could not be found"
+          description={statusError instanceof Error ? statusError.message : undefined}
+          style={{ marginBottom: 16 }}
+        />
+        <Button type="primary" onClick={onCancel}>
+          Return to upload
+        </Button>
+      </Card>
+    )
+  }
 
   return (
     <Row gutter={[20, 20]}>
@@ -121,9 +132,13 @@ export function ProcessingView({ files, onComplete, onCancel }: ProcessingViewPr
         <Card
           title="Processing"
           extra={
-            finished ? (
-              <Tag color="green" variant="filled" style={{ marginInlineEnd: 0 }}>
-                Completed with review flags
+            isFailed ? (
+              <Tag color="red" variant="filled" style={{ marginInlineEnd: 0 }}>
+                Failed
+              </Tag>
+            ) : isCompleted ? (
+              <Tag color={withReviewFlags ? "gold" : "green"} variant="filled" style={{ marginInlineEnd: 0 }}>
+                {withReviewFlags ? "Completed with review flags" : "Completed"}
               </Tag>
             ) : (
               <Tag color="blue" variant="filled" style={{ marginInlineEnd: 0 }}>
@@ -135,37 +150,62 @@ export function ProcessingView({ files, onComplete, onCancel }: ProcessingViewPr
           <Flex align="center" gap={20} wrap style={{ marginBottom: 24 }}>
             <Progress
               type="circle"
-              percent={overall}
+              percent={status?.progress_percent ?? 0}
               size={92}
-              strokeColor={finished ? "var(--good)" : "var(--accent)"}
-              status={finished ? "success" : "active"}
+              strokeColor={isFailed ? "var(--alert)" : isCompleted ? "var(--good)" : "var(--accent)"}
+              status={isFailed ? "exception" : isCompleted ? "success" : "active"}
             />
             <div style={{ flex: "1 1 220px", minWidth: 200 }}>
               <div className="eyebrow" style={{ marginBottom: 4 }}>
-                {finished ? "Analysis ready" : `Stage ${Math.min(stageIndex + 1, total)} of ${total}`}
+                {isFailed
+                  ? "Pipeline halted"
+                  : isCompleted
+                    ? "Analysis ready"
+                    : `Stage ${Math.min(activeIndex + 1, total)} of ${total}`}
               </div>
               <Title level={4} style={{ margin: "0 0 4px", fontSize: 17 }}>
-                {finished ? "Extraction and analysis complete" : processingStages[stageIndex]?.title}
+                {headline}
               </Title>
               <Paragraph type="secondary" style={{ margin: 0, fontSize: 13 }}>
-                {finished
-                  ? "17 of 19 target fields extracted. 3 items require manual review before the figures are relied on."
-                  : processingStages[stageIndex]?.description}
+                {subline}
               </Paragraph>
             </div>
           </Flex>
 
-          <Steps
-            orientation="vertical"
-            size="small"
-            current={finished ? total : stageIndex}
-            items={stepItems}
-            aria-label="Extraction pipeline progress"
-          />
+          {stepItems.length > 0 && (
+            <Steps
+              orientation="vertical"
+              size="small"
+              current={isCompleted ? total : activeIndex}
+              items={stepItems}
+              aria-label="Extraction pipeline progress"
+            />
+          )}
+
+          {resultNotReady && (
+            <Alert
+              type="info"
+              showIcon
+              style={{ marginTop: 16 }}
+              title="Result not ready yet"
+              description="The pipeline reported completion but the result is still being assembled. Processing state has been preserved."
+              action={
+                <Button size="small" onClick={() => resultQuery.refetch()}>
+                  Retry
+                </Button>
+              }
+            />
+          )}
 
           <Flex gap={10} justify="flex-end" style={{ marginTop: 20 }}>
-            <Button onClick={onCancel}>{finished ? "Start over" : "Cancel"}</Button>
-            <Button type="primary" size="large" disabled={!finished} onClick={onComplete}>
+            <Button onClick={onCancel}>{isCompleted || isFailed ? "Start over" : "Cancel"}</Button>
+            <Button
+              type="primary"
+              size="large"
+              disabled={!readyForDashboard}
+              loading={isCompleted && resultQuery.isPending}
+              onClick={onComplete}
+            >
               Open analysis dashboard
             </Button>
           </Flex>
@@ -209,11 +249,25 @@ export function ProcessingView({ files, onComplete, onCancel }: ProcessingViewPr
             )}
           </Card>
 
-          {finished && (
+          {isFailed && (
+            <Alert
+              type="error"
+              showIcon
+              title="Analysis could not be completed"
+              description={status?.error?.message ?? "Start a new analysis and try again."}
+              action={
+                <Button size="small" onClick={onCancel}>
+                  Start over
+                </Button>
+              }
+            />
+          )}
+
+          {isCompleted && reviewCount > 0 && (
             <Alert
               type="warning"
               showIcon
-              title="3 items need manual review"
+              title={`${reviewCount} item${reviewCount === 1 ? "" : "s"} need manual review`}
               description="One value conflicts across the two documents, one scanned table returned low OCR confidence, and one field is not disclosed in the source. No figure was substituted in any of these cases."
             />
           )}

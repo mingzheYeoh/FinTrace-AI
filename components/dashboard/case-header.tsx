@@ -1,13 +1,31 @@
 "use client"
 
 import { Button, Card, Divider, Flex, Progress, Tag, Tooltip, Typography } from "antd"
-import { FilePdfOutlined, FileExcelOutlined, ReloadOutlined, WarningOutlined } from "@ant-design/icons"
-import { caseSummary } from "@/lib/mock-data"
+import {
+  FileExcelOutlined,
+  FilePdfOutlined,
+  FileTextOutlined,
+  ReloadOutlined,
+  WarningOutlined,
+} from "@ant-design/icons"
+import type { AnalysisSummary } from "@/src/lib/api/client"
 
 const { Text, Title } = Typography
 
-export function CaseHeader({ onReset }: { onReset: () => void }) {
-  const coverage = Math.round((caseSummary.fieldsExtracted / caseSummary.fieldsTargeted) * 100)
+const docIcon = {
+  pdf: <FilePdfOutlined />,
+  xlsx: <FileExcelOutlined />,
+  csv: <FileTextOutlined />,
+}
+
+interface CaseHeaderProps {
+  summary: AnalysisSummary
+  onReset: () => void
+}
+
+export function CaseHeader({ summary, onReset }: CaseHeaderProps) {
+  const { extraction_summary: extraction } = summary
+  const coverage = Math.round((extraction.extracted_fields / extraction.targeted_fields) * 100)
 
   return (
     <Card className="panel case-header">
@@ -15,24 +33,23 @@ export function CaseHeader({ onReset }: { onReset: () => void }) {
         <Flex vertical gap={10} style={{ minWidth: 280 }}>
           <Flex align="center" gap={10} wrap>
             <Title level={4} style={{ margin: 0 }}>
-              {caseSummary.company}
+              {summary.company}
             </Title>
             <Tag variant="filled" className="rule-tag">
-              {caseSummary.id}
+              {summary.analysis_id}
             </Tag>
           </Flex>
           <Text type="secondary" style={{ fontSize: 12.5 }}>
-            Reg. {caseSummary.registrationId} · Statements to {caseSummary.statementDate} · All figures in{" "}
-            {caseSummary.currency} {caseSummary.unitScale}
+            Reg. {summary.registration_id} · Statements to {summary.statement_date} · All figures in{" "}
+            {summary.currency} {summary.unit_scale}
           </Text>
           <Flex gap={8} wrap>
-            {caseSummary.documents.map((doc) => (
-              <Tooltip key={doc.id} title={`${doc.sizeLabel} · ${doc.pageOrSheetCount} ${doc.kind === "pdf" ? "pages" : "sheets"}`}>
-                <Tag
-                  variant="filled"
-                  className="doc-chip"
-                  icon={doc.kind === "pdf" ? <FilePdfOutlined /> : <FileExcelOutlined />}
-                >
+            {summary.documents.map((doc) => (
+              <Tooltip
+                key={doc.id}
+                title={`${doc.size_label} · ${doc.page_or_sheet_count} ${doc.kind === "pdf" ? "pages" : "sheets"}`}
+              >
+                <Tag variant="filled" className="doc-chip" icon={docIcon[doc.kind]}>
                   {doc.name}
                 </Tag>
               </Tooltip>
@@ -46,7 +63,7 @@ export function CaseHeader({ onReset }: { onReset: () => void }) {
               Comparison
             </Text>
             <Text strong className="numeric" style={{ fontSize: 15 }}>
-              {caseSummary.currentPeriod} vs {caseSummary.priorPeriod}
+              {summary.current_period} vs {summary.prior_period}
             </Text>
           </Flex>
 
@@ -58,7 +75,7 @@ export function CaseHeader({ onReset }: { onReset: () => void }) {
             </Text>
             <Flex align="center" gap={10}>
               <Text strong className="numeric" style={{ fontSize: 15 }}>
-                {caseSummary.fieldsExtracted}/{caseSummary.fieldsTargeted}
+                {extraction.extracted_fields}/{extraction.targeted_fields}
               </Text>
               <Progress
                 percent={coverage}
@@ -79,7 +96,7 @@ export function CaseHeader({ onReset }: { onReset: () => void }) {
             <Flex align="center" gap={6}>
               <WarningOutlined style={{ color: "var(--caution)" }} />
               <Text strong className="numeric" style={{ fontSize: 15 }}>
-                {caseSummary.manualReviewCount} fields
+                {extraction.manual_review_count} fields
               </Text>
             </Flex>
           </Flex>

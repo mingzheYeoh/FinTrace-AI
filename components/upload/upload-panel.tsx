@@ -26,19 +26,24 @@ import {
   InboxOutlined,
   ThunderboltOutlined,
 } from "@ant-design/icons"
-import { caseSummary } from "@/lib/mock-data"
+import { FinTraceApiError } from "@/src/lib/api/client"
+import { useCreateAnalysis } from "@/src/features/analysis/queries"
+import { createDemoFiles } from "@/src/features/analysis/demo-files"
 
 const { Title, Text, Paragraph } = Typography
 const { Dragger } = Upload
 
 const ACCEPTED = [".pdf", ".xlsx", ".csv"]
 const MAX_BYTES = 20 * 1024 * 1024
+const MAX_FILES = 5
 
+/** A queued file: the real File object plus display metadata. */
 export interface StagedFile {
   uid: string
   name: string
   sizeLabel: string
   kind: "pdf" | "xlsx" | "csv"
+  file: File
 }
 
 function kindOf(name: string): StagedFile["kind"] | null {
@@ -60,15 +65,38 @@ const kindIcon = {
   csv: <FileTextOutlined style={{ color: "var(--ink-soft)", fontSize: 18 }} />,
 }
 
-export function UploadPanel({ onStart }: { onStart: (files: StagedFile[]) => void }) {
+/** Maps a contract error to guidance naming the specific rule that was hit. */
+function describeError(error: unknown): string {
+  if (error instanceof FinTraceApiError) {
+    switch (error.status) {
+      case 413:
+        return `${error.message} Remove the oversized file and run the analysis again.`
+      case 415:
+        return `${error.message} Convert the file to a searchable PDF, XLSX or CSV and try again.`
+      case 422:
+        return `${error.message} Adjust the queue to between one and five files.`
+      default:
+        return `${error.message} Your queued files are unchanged, so you can retry.`
+    }
+  }
+  return "The analysis request could not be sent. Check your connection and try again; your queued files are unchanged."
+}
+
+export function UploadPanel({
+  onStarted,
+}: {
+  onStarted: (analysisId: string, files: StagedFile[]) => void
+}) {
   const { message } = App.useApp()
   const [staged, setStaged] = useState<StagedFile[]>([])
   const [rejection, setRejection] = useState<string | null>(null)
 
-  const canStart = staged.length > 0
+  const createAnalysis = useCreateAnalysis()
+  const canStart = staged.length > 0 && !createAnalysis.isPending
 
-  const beforeUpload = (file: UploadFile & { size?: number }) => {
+  const beforeUpload = (file: UploadFile & { size?: number; originFileObj?: File }) => {
     const kind = kindOf(file.name)
+    const raw = (file as unknown as File) instanceof File ? (file as unknown as File) : file.originFileObj
 
     if (!kind) {
       setRejection(
@@ -87,29 +115,54 @@ export function UploadPanel({ onStart }: { onStart: (files: StagedFile[]) => voi
       return Upload.LIST_IGNORE
     }
 
+    if (staged.length >= MAX_FILES) {
+      setRejection(
+        `One analysis accepts up to ${MAX_FILES} files. “${file.name}” was not queued and the ${MAX_FILES} files already in the queue are unchanged.`,
+      )
+      return Upload.LIST_IGNORE
+    }
+
+    if (!raw) return Upload.LIST_IGNORE
+
     setRejection(null)
     setStaged((prev) => [
       ...prev,
-      { uid: file.uid, name: file.name, sizeLabel: sizeLabel(file.size ?? 0), kind },
+      { uid: file.uid, name: file.name, sizeLabel: sizeLabel(file.size ?? 0), kind, file: raw },
     ])
-    // Phase 0: nothing is transmitted anywhere.
+    // Ant's own uploader is bypassed: the request is issued by createAnalysis.
     return Upload.LIST_IGNORE
   }
 
   const loadSample = () => {
     setRejection(null)
     setStaged(
-      caseSummary.documents.map((d) => ({
-        uid: d.id,
-        name: d.name,
-        sizeLabel: d.sizeLabel,
-        kind: d.kind,
+      createDemoFiles().map((file, index) => ({
+        uid: `demo-${index}`,
+        name: file.name,
+        sizeLabel: sizeLabel(file.size),
+        kind: kindOf(file.name) ?? "pdf",
+        file,
       })),
     )
     message.success("Loaded the synthetic demonstration file set.")
   }
 
   const remove = (uid: string) => setStaged((prev) => prev.filter((s) => s.uid !== uid))
+
+  const runAnalysis = () => {
+    if (staged.length === 0) {
+      setRejection("Queue at least one file before running an analysis.")
+      return
+    }
+    setRejection(null)
+    createAnalysis.mutate(
+      staged.map((s) => s.file),
+      {
+        onSuccess: (data) => onStarted(data.analysis_id, staged),
+        onError: (error) => setRejection(describeError(error)),
+      },
+    )
+  }
 
   const summary = useMemo(() => {
     const counts = staged.reduce<Record<string, number>>((acc, f) => {
@@ -152,7 +205,7 @@ export function UploadPanel({ onStart }: { onStart: (files: StagedFile[]) => voi
               Drop financial reports here, or click to browse
             </p>
             <p className="ant-upload-hint" style={{ fontSize: 12.5 }}>
-              Searchable PDF, XLSX or structured CSV · up to 20 MB per file
+              Searchable PDF, XLSX or structured CSV · up to 20 MB per file · maximum {MAX_FILES} files
             </p>
           </Dragger>
 
@@ -163,14 +216,16 @@ export function UploadPanel({ onStart }: { onStart: (files: StagedFile[]) => voi
               closable
               onClose={() => setRejection(null)}
               style={{ marginTop: 16 }}
-              title="Unsupported file"
+              title="File not accepted"
               description={rejection}
             />
           )}
 
           <Divider style={{ margin: "20px 0 12px" }}>
             <Text type="secondary" style={{ fontSize: 12 }}>
-              {staged.length > 0 ? `${staged.length} file${staged.length > 1 ? "s" : ""} queued · ${summary}` : "Queue"}
+              {staged.length > 0
+                ? `${staged.length} of ${MAX_FILES} file${staged.length > 1 ? "s" : ""} queued · ${summary}`
+                : "Queue"}
             </Text>
           </Divider>
 
@@ -204,6 +259,7 @@ export function UploadPanel({ onStart }: { onStart: (files: StagedFile[]) => voi
                     icon={<DeleteOutlined />}
                     onClick={() => remove(file.uid)}
                     aria-label={`Remove ${file.name}`}
+                    disabled={createAnalysis.isPending}
                   />
                 </Flex>
               ))}
@@ -212,13 +268,14 @@ export function UploadPanel({ onStart }: { onStart: (files: StagedFile[]) => voi
 
           <Flex justify="space-between" align="center" gap={12} wrap style={{ marginTop: 20 }}>
             <Text type="secondary" style={{ fontSize: 12 }}>
-              Files stay in the browser. Nothing is uploaded in this prototype.
+              A mock service worker intercepts this request inside the browser. No file leaves your device.
             </Text>
             <Button
               type="primary"
               size="large"
               disabled={!canStart}
-              onClick={() => onStart(staged)}
+              loading={createAnalysis.isPending}
+              onClick={runAnalysis}
               icon={<ThunderboltOutlined />}
             >
               Run analysis
@@ -244,6 +301,7 @@ export function UploadPanel({ onStart }: { onStart: (files: StagedFile[]) => voi
                 "Current assets",
                 "Current liabilities",
                 "Total assets",
+                "Total liabilities",
                 "Equity",
                 "Borrowings",
                 "Receivables",
