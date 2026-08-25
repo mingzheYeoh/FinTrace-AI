@@ -47,7 +47,7 @@ export function ProcessingView({ analysisId, files, onComplete, onCancel }: Proc
   const resultError = resultQuery.error
   const resultNotReady = resultError instanceof FinTraceApiError && resultError.status === 409
 
-  const stages = status?.stages ?? []
+  const stages = useMemo(() => status?.stages ?? [], [status?.stages])
   const total = stages.length || 6
   const activeIndex = useMemo(() => {
     if (!status) return 0

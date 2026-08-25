@@ -27,15 +27,17 @@ import {
   ThunderboltOutlined,
 } from "@ant-design/icons"
 import { FinTraceApiError } from "@/src/lib/api/client"
+import { getUploadScope, resolveApiMode } from "@/src/lib/api/mode.mjs"
 import { useCreateAnalysis } from "@/src/features/analysis/queries"
 import { createDemoFiles } from "@/src/features/analysis/demo-files"
 
-const { Title, Text, Paragraph } = Typography
+const { Text, Paragraph } = Typography
 const { Dragger } = Upload
 
 const ACCEPTED = [".pdf", ".xlsx", ".csv"]
 const MAX_BYTES = 20 * 1024 * 1024
 const MAX_FILES = 5
+const uploadScope = getUploadScope(resolveApiMode())
 
 /** A queued file: the real File object plus display metadata. */
 export interface StagedFile {
@@ -268,7 +270,7 @@ export function UploadPanel({
 
           <Flex justify="space-between" align="center" gap={12} wrap style={{ marginTop: 20 }}>
             <Text type="secondary" style={{ fontSize: 12 }}>
-              A mock service worker intercepts this request inside the browser. No file leaves your device.
+              {uploadScope.notice}
             </Text>
             <Button
               type="primary"
@@ -335,8 +337,8 @@ export function UploadPanel({
           <Alert
             type="info"
             showIcon
-            title="Phase 0 scope"
-            description="This build is the frontend prototype only. Authentication, storage, extraction services and the trusted-agent workflow are not connected yet."
+            title={uploadScope.title}
+            description={uploadScope.description}
           />
         </Flex>
       </Col>
