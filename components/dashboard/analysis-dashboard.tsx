@@ -57,21 +57,20 @@ export function AnalysisDashboard({ analysisId, onReset }: AnalysisDashboardProp
 
       <TrendCharts trends={data.trends} />
 
+      <PeriodComparison
+        fields={data.fields}
+        ratios={data.ratios}
+        calculations={data.calculations}
+        currentPeriod={data.summary.current_period}
+        priorPeriod={data.summary.prior_period}
+      />
+
       <Row gutter={[16, 16]}>
-        <Col xs={24} xl={13}>
-          <PeriodComparison
-            fields={data.fields}
-            ratios={data.ratios}
-            calculations={data.calculations}
-            currentPeriod={data.summary.current_period}
-            priorPeriod={data.summary.prior_period}
-          />
+        <Col xs={24} lg={12}>
+          <AnomalyPanel anomalies={data.anomalies} />
         </Col>
-        <Col xs={24} xl={11}>
-          <Flex vertical gap={16}>
-            <AnomalyPanel anomalies={data.anomalies} />
-            <InsightsPanel insights={data.insights} followUpQuestions={data.follow_up_questions} />
-          </Flex>
+        <Col xs={24} lg={12}>
+          <InsightsPanel insights={data.insights} followUpQuestions={data.follow_up_questions} />
         </Col>
       </Row>
     </Flex>

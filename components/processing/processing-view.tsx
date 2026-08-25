@@ -13,6 +13,10 @@ import {
 } from "@ant-design/icons"
 import { FinTraceApiError } from "@/src/lib/api/client"
 import { useAnalysisResult, useAnalysisStatus } from "@/src/features/analysis/queries"
+import {
+  presentProcessingStatus,
+  type ResultPresentationState,
+} from "@/src/features/analysis/processing-presentation"
 import type { StagedFile } from "@/components/upload/upload-panel"
 
 const { Title, Text, Paragraph } = Typography
@@ -35,7 +39,6 @@ export function ProcessingView({ analysisId, files, onComplete, onCancel }: Proc
   const status = statusQuery.data
 
   const isCompleted = status?.status === "completed"
-  const isFailed = status?.status === "failed"
 
   // Result is fetched only after terminal completion, per the contract.
   const resultQuery = useAnalysisResult(analysisId, isCompleted)
@@ -46,6 +49,16 @@ export function ProcessingView({ analysisId, files, onComplete, onCancel }: Proc
   // A 409 means the result is not ready; processing state is preserved.
   const resultError = resultQuery.error
   const resultNotReady = resultError instanceof FinTraceApiError && resultError.status === 409
+  const resultState: ResultPresentationState = resultQuery.isSuccess
+    ? "ready"
+    : isCompleted && resultQuery.isPending
+      ? "loading"
+      : resultNotReady
+        ? "not_ready"
+        : resultQuery.isError
+          ? "error"
+          : "idle"
+  const presentation = presentProcessingStatus(status, resultState)
 
   const stages = useMemo(() => status?.stages ?? [], [status?.stages])
   const total = stages.length || 6
@@ -55,8 +68,6 @@ export function ProcessingView({ analysisId, files, onComplete, onCancel }: Proc
     const index = stages.findIndex((stage) => stage.key === status.active_stage)
     return index >= 0 ? index : 0
   }, [stages, status, total])
-
-  const readyForDashboard = isCompleted && resultQuery.isSuccess
 
   const visibleLogs = useMemo(
     () =>
@@ -93,22 +104,6 @@ export function ProcessingView({ analysisId, files, onComplete, onCancel }: Proc
       ) : undefined,
   }))
 
-  const summary = status?.extraction_summary
-  const reviewCount = summary?.manual_review_count ?? 0
-  const withReviewFlags = status?.completion_outcome === "completed_with_review_flags"
-
-  const headline = isFailed
-    ? "Analysis failed"
-    : isCompleted
-      ? "Extraction and analysis complete"
-      : (stages[activeIndex]?.title ?? "Starting analysis")
-
-  const subline = isFailed
-    ? (status?.error?.message ?? "The analysis could not be completed.")
-    : isCompleted && summary
-      ? `${summary.extracted_fields} of ${summary.targeted_fields} target fields extracted. ${reviewCount} item${reviewCount === 1 ? "" : "s"} require manual review before the figures are relied on.`
-      : (stages[activeIndex]?.description ?? status?.message ?? "Preparing the pipeline…")
-
   if (analysisMissing) {
     return (
       <Card title="Analysis unavailable">
@@ -131,20 +126,12 @@ export function ProcessingView({ analysisId, files, onComplete, onCancel }: Proc
       <Col xs={24} lg={14}>
         <Card
           title="Processing"
+          className="processing-card"
+          data-tone={presentation.tone}
           extra={
-            isFailed ? (
-              <Tag color="red" variant="filled" style={{ marginInlineEnd: 0 }}>
-                Failed
-              </Tag>
-            ) : isCompleted ? (
-              <Tag color={withReviewFlags ? "gold" : "green"} variant="filled" style={{ marginInlineEnd: 0 }}>
-                {withReviewFlags ? "Completed with review flags" : "Completed"}
-              </Tag>
-            ) : (
-              <Tag color="blue" variant="filled" style={{ marginInlineEnd: 0 }}>
-                In progress
-              </Tag>
-            )
+            <Tag color={presentation.badgeColor} variant="filled" style={{ marginInlineEnd: 0 }}>
+              {presentation.badgeLabel}
+            </Tag>
           }
         >
           <Flex align="center" gap={20} wrap style={{ marginBottom: 24 }}>
@@ -152,22 +139,34 @@ export function ProcessingView({ analysisId, files, onComplete, onCancel }: Proc
               type="circle"
               percent={status?.progress_percent ?? 0}
               size={92}
-              strokeColor={isFailed ? "var(--alert)" : isCompleted ? "var(--good)" : "var(--accent)"}
-              status={isFailed ? "exception" : isCompleted ? "success" : "active"}
+              strokeColor={
+                presentation.tone === "error"
+                  ? "var(--alert)"
+                  : presentation.tone === "warning"
+                    ? "var(--caution)"
+                    : presentation.tone === "success"
+                      ? "var(--good)"
+                      : "var(--accent)"
+              }
+              status={
+                presentation.tone === "error"
+                  ? "exception"
+                  : presentation.tone === "success"
+                    ? "success"
+                    : presentation.tone === "processing"
+                      ? "active"
+                      : "normal"
+              }
             />
             <div style={{ flex: "1 1 220px", minWidth: 200 }}>
               <div className="eyebrow" style={{ marginBottom: 4 }}>
-                {isFailed
-                  ? "Pipeline halted"
-                  : isCompleted
-                    ? "Analysis ready"
-                    : `Stage ${Math.min(activeIndex + 1, total)} of ${total}`}
+                {presentation.kicker}
               </div>
               <Title level={4} style={{ margin: "0 0 4px", fontSize: 17 }}>
-                {headline}
+                {presentation.hero}
               </Title>
               <Paragraph type="secondary" style={{ margin: 0, fontSize: 13 }}>
-                {subline}
+                {presentation.subtitle}
               </Paragraph>
             </div>
           </Flex>
@@ -182,13 +181,13 @@ export function ProcessingView({ analysisId, files, onComplete, onCancel }: Proc
             />
           )}
 
-          {resultNotReady && (
+          {presentation.resultAlert && (
             <Alert
-              type="info"
+              type={presentation.resultAlert.type}
               showIcon
               style={{ marginTop: 16 }}
-              title="Result not ready yet"
-              description="The pipeline reported completion but the result is still being assembled. Processing state has been preserved."
+              title={presentation.resultAlert.title}
+              description={presentation.resultAlert.description}
               action={
                 <Button size="small" onClick={() => resultQuery.refetch()}>
                   Retry
@@ -197,18 +196,19 @@ export function ProcessingView({ analysisId, files, onComplete, onCancel }: Proc
             />
           )}
 
-          <Flex gap={10} justify="flex-end" style={{ marginTop: 20 }}>
-            <Button onClick={onCancel}>{isCompleted || isFailed ? "Start over" : "Cancel"}</Button>
-            <Button
-              type="primary"
-              size="large"
-              disabled={!readyForDashboard}
-              loading={isCompleted && resultQuery.isPending}
-              onClick={onComplete}
-            >
-              Open analysis dashboard
-            </Button>
-          </Flex>
+          <div className="processing-actions" aria-label="Processing actions">
+            <Button onClick={onCancel}>Start over</Button>
+            {presentation.showDashboardAction && (
+              <Button
+                type="primary"
+                disabled={!presentation.dashboardEnabled}
+                loading={presentation.dashboardLoading}
+                onClick={onComplete}
+              >
+                Open analysis dashboard
+              </Button>
+            )}
+          </div>
         </Card>
       </Col>
 
@@ -249,26 +249,12 @@ export function ProcessingView({ analysisId, files, onComplete, onCancel }: Proc
             )}
           </Card>
 
-          {isFailed && (
+          {presentation.sideAlert && (
             <Alert
-              type="error"
+              type={presentation.sideAlert.type}
               showIcon
-              title="Analysis could not be completed"
-              description={status?.error?.message ?? "Start a new analysis and try again."}
-              action={
-                <Button size="small" onClick={onCancel}>
-                  Start over
-                </Button>
-              }
-            />
-          )}
-
-          {isCompleted && reviewCount > 0 && (
-            <Alert
-              type="warning"
-              showIcon
-              title={`${reviewCount} item${reviewCount === 1 ? "" : "s"} need manual review`}
-              description="One value conflicts across the two documents, one scanned table returned low OCR confidence, and one field is not disclosed in the source. No figure was substituted in any of these cases."
+              title={presentation.sideAlert.title}
+              description={presentation.sideAlert.description}
             />
           )}
         </Flex>

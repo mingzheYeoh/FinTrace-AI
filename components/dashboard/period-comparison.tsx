@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo } from "react"
-import { Card, Space, Table, Tag, Tooltip, Typography } from "antd"
+import { Button, Card, Space, Table, Tag, Tooltip, Typography } from "antd"
 import type { TableProps } from "antd"
 import { ArrowDownOutlined, ArrowUpOutlined, LinkOutlined } from "@ant-design/icons"
 import type { Calculation, FinancialField, RatioComparison } from "@/src/lib/api/client"
@@ -41,7 +41,7 @@ function ChangeCell({
   const color = Math.abs(pct) < 0.01 ? "var(--ink-faint)" : improving ? "var(--good)" : "var(--alert)"
 
   return (
-    <Space size={3} style={{ color, fontWeight: 500 }}>
+    <Space className="comparison-change" size={3} style={{ color, fontWeight: 500 }}>
       {pct >= 0 ? <ArrowUpOutlined aria-hidden /> : <ArrowDownOutlined aria-hidden />}
       <span className="numeric">{formatNumber(Math.abs(pct), 2)}%</span>
     </Space>
@@ -54,11 +54,28 @@ function ValueCell({ value, emphasis = false }: { value: string | null; emphasis
   if (parsed === null) return <Text type="secondary">—</Text>
   return (
     <span
-      className="numeric"
+      className="numeric financial-value"
       style={{ color: parsed < 0 ? "var(--alert)" : undefined, fontWeight: emphasis ? 500 : undefined }}
     >
       {formatCurrency(parsed)}
     </span>
+  )
+}
+
+function EvidenceButton({ label, onOpen }: { label: string; onOpen: () => void }) {
+  return (
+    <Tooltip title={`Open evidence for ${label}`}>
+      <Button
+        type="text"
+        className="evidence-action"
+        icon={<LinkOutlined aria-hidden />}
+        aria-label={`Open evidence for ${label}`}
+        onClick={(event) => {
+          event.stopPropagation()
+          onOpen()
+        }}
+      />
+    </Tooltip>
   )
 }
 
@@ -72,6 +89,7 @@ export function PeriodComparison({ fields, ratios, calculations, currentPeriod, 
       title: "Line item",
       dataIndex: "label",
       key: "label",
+      width: 280,
       render: (label: string, row) => (
         <Space size={6} wrap>
           <Text style={{ fontSize: 13.5 }}>{label}</Text>
@@ -98,32 +116,33 @@ export function PeriodComparison({ fields, ratios, calculations, currentPeriod, 
       title: currentPeriod,
       key: "current",
       align: "right",
-      width: 150,
+      width: 230,
       render: (_, row) => <ValueCell value={row.current.value} emphasis />,
     },
     {
       title: priorPeriod,
       key: "prior",
       align: "right",
-      width: 150,
+      width: 230,
       render: (_, row) => <ValueCell value={row.prior.value} />,
     },
     {
       title: "Change",
       key: "change",
       align: "right",
-      width: 130,
+      width: 160,
       render: (_, row) => <ChangeCell percentageChange={row.percentage_change} />,
     },
     {
-      title: "",
+      title: <span className="sr-only">Evidence</span>,
       key: "trace",
-      width: 44,
+      width: 72,
       align: "center",
-      render: () => (
-        <Tooltip title="Trace to source">
-          <LinkOutlined style={{ color: "var(--ink-faint)", fontSize: 12 }} aria-hidden />
-        </Tooltip>
+      render: (_, row) => (
+        <EvidenceButton
+          label={row.label}
+          onOpen={() => openEvidence({ evidenceId: row.evidence_id, fallbackTitle: row.label })}
+        />
       ),
     },
   ]
@@ -133,6 +152,7 @@ export function PeriodComparison({ fields, ratios, calculations, currentPeriod, 
       title: "Ratio",
       dataIndex: "label",
       key: "label",
+      width: 280,
       render: (label: string, row) => {
         const calc = calcById.get(row.current_calculation_id)
         return (
@@ -149,13 +169,13 @@ export function PeriodComparison({ fields, ratios, calculations, currentPeriod, 
       title: currentPeriod,
       key: "current",
       align: "right",
-      width: 130,
+      width: 230,
       render: (_, row) => {
         const value = toNumber(row.current)
         return value === null ? (
           <Text type="secondary">—</Text>
         ) : (
-          <span className="numeric" style={{ fontWeight: 500 }}>
+          <span className="numeric financial-value" style={{ fontWeight: 500 }}>
             {formatNumber(value, 2)}
             {row.unit === "percentage" ? "%" : row.unit === "ratio" ? "x" : ""}
           </span>
@@ -166,13 +186,13 @@ export function PeriodComparison({ fields, ratios, calculations, currentPeriod, 
       title: priorPeriod,
       key: "prior",
       align: "right",
-      width: 130,
+      width: 230,
       render: (_, row) => {
         const value = toNumber(row.prior)
         return value === null ? (
           <Text type="secondary">—</Text>
         ) : (
-          <span className="numeric">
+          <span className="numeric financial-value">
             {formatNumber(value, 2)}
             {row.unit === "percentage" ? "%" : row.unit === "ratio" ? "x" : ""}
           </span>
@@ -183,20 +203,21 @@ export function PeriodComparison({ fields, ratios, calculations, currentPeriod, 
       title: "Change",
       key: "change",
       align: "right",
-      width: 130,
+      width: 160,
       render: (_, row) => (
         <ChangeCell percentageChange={row.percentage_change} invert={!row.higher_is_better} />
       ),
     },
     {
-      title: "",
+      title: <span className="sr-only">Evidence</span>,
       key: "trace",
-      width: 44,
+      width: 72,
       align: "center",
-      render: () => (
-        <Tooltip title="Trace to formula and inputs">
-          <LinkOutlined style={{ color: "var(--ink-faint)", fontSize: 12 }} aria-hidden />
-        </Tooltip>
+      render: (_, row) => (
+        <EvidenceButton
+          label={row.label}
+          onOpen={() => openEvidence({ evidenceId: row.evidence_id, fallbackTitle: row.label })}
+        />
       ),
     },
   ]
@@ -204,9 +225,10 @@ export function PeriodComparison({ fields, ratios, calculations, currentPeriod, 
   return (
     <Card
       title={`Two-period comparison · ${currentPeriod} vs ${priorPeriod}`}
+      className="comparison-card"
       extra={
         <Text type="secondary" style={{ fontSize: 12 }}>
-          Select any row to open its evidence
+          Use the evidence action on any row to trace its source
         </Text>
       }
       styles={{ body: { padding: 0 } }}
@@ -215,39 +237,29 @@ export function PeriodComparison({ fields, ratios, calculations, currentPeriod, 
         <div className="eyebrow">Statement line items · MYR thousands</div>
       </div>
       <Table
+        className="comparison-table"
         size="small"
         rowKey="id"
         columns={lineColumns}
         dataSource={fields}
         pagination={false}
-        rowClassName="traceable-row"
         // Financial tables must not shrink their figures — scroll them instead.
-        scroll={{ x: "max-content" }}
+        scroll={{ x: 1100 }}
         style={{ marginTop: 8 }}
-        onRow={(row) => ({
-          onClick: () => openEvidence({ evidenceId: row.evidence_id, fallbackTitle: row.label }),
-          tabIndex: 0,
-          "aria-label": `${row.label}. Open source evidence.`,
-        })}
       />
 
       <div style={{ padding: "22px 20px 0", borderTop: "1px solid var(--rule-soft)" }}>
         <div className="eyebrow">Deterministic ratios</div>
       </div>
       <Table
+        className="comparison-table"
         size="small"
         rowKey="id"
         columns={ratioColumns}
         dataSource={ratios}
         pagination={false}
-        rowClassName="traceable-row"
-        scroll={{ x: "max-content" }}
+        scroll={{ x: 1100 }}
         style={{ marginTop: 8 }}
-        onRow={(row) => ({
-          onClick: () => openEvidence({ evidenceId: row.evidence_id, fallbackTitle: row.label }),
-          tabIndex: 0,
-          "aria-label": `${row.label}. Open formula and inputs.`,
-        })}
       />
     </Card>
   )
