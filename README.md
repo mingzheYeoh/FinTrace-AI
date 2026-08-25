@@ -18,6 +18,8 @@ uv sync --dev
 Set-Location ..
 ```
 
+ESLint 9.39.5 is a development-only dependency. It is lifecycle-deprecated upstream but remains pinned because ESLint 10 is outside the peer ranges of the plugin graph used by `eslint-config-next` 16.3.2. `npm audit` currently reports zero vulnerabilities. Upgrade ESLint when the installed Next.js lint stack supports a newer major version.
+
 ## Run in browser-only mock mode
 
 Only the Next.js process is required. MSW intercepts API calls in the browser, and no uploaded file leaves the browser.
