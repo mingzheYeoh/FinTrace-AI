@@ -2,6 +2,10 @@ import assert from "node:assert/strict"
 import test from "node:test"
 
 import { presentProcessingStatus } from "../../src/features/analysis/processing-presentation.ts"
+import {
+  resolveResultScenario,
+  scenarioFromFilenames,
+} from "../../src/mocks/scenario-routing.ts"
 
 const activeStage = {
   key: "validate",
@@ -32,7 +36,9 @@ function makeStatus(overrides = {}) {
 }
 
 test("processing copy follows the active API stage and keeps the dashboard unavailable", () => {
-  assert.deepEqual(presentProcessingStatus(makeStatus(), "idle"), {
+  const presentation = presentProcessingStatus(makeStatus(), "idle")
+
+  assert.deepEqual(presentation, {
     phase: "processing",
     tone: "processing",
     badgeLabel: "In progress",
@@ -40,12 +46,14 @@ test("processing copy follows the active API stage and keeps the dashboard unava
     kicker: "Stage 1 of 1",
     hero: "Validate input",
     subtitle: "File type, size, and parseability checks",
-    showDashboardAction: true,
+    showDashboardAction: false,
     dashboardEnabled: false,
     dashboardLoading: false,
     resultAlert: null,
     sideAlert: null,
   })
+  assert.equal(presentation.showDashboardAction, false)
+  assert.equal(presentation.dashboardEnabled, false)
 })
 
 test("clean completion reports API coverage and enables a ready result", () => {
@@ -61,7 +69,9 @@ test("clean completion reports API coverage and enables a ready result", () => {
     },
   })
 
-  assert.deepEqual(presentProcessingStatus(status, "ready"), {
+  const presentation = presentProcessingStatus(status, "ready")
+
+  assert.deepEqual(presentation, {
     phase: "completed",
     tone: "success",
     badgeLabel: "Completed",
@@ -75,6 +85,8 @@ test("clean completion reports API coverage and enables a ready result", () => {
     resultAlert: null,
     sideAlert: null,
   })
+  assert.equal(presentation.showDashboardAction, true)
+  assert.equal(presentation.dashboardEnabled, true)
 })
 
 test("review-flag completion reports API coverage and review count with warning tone", () => {
@@ -90,7 +102,9 @@ test("review-flag completion reports API coverage and review count with warning 
     },
   })
 
-  assert.deepEqual(presentProcessingStatus(status, "ready"), {
+  const presentation = presentProcessingStatus(status, "ready")
+
+  assert.deepEqual(presentation, {
     phase: "completed_with_review_flags",
     tone: "warning",
     badgeLabel: "Completed with review flags",
@@ -108,6 +122,8 @@ test("review-flag completion reports API coverage and review count with warning 
       description: "Review each flagged item and its source evidence before relying on this analysis.",
     },
   })
+  assert.equal(presentation.showDashboardAction, true)
+  assert.equal(presentation.dashboardEnabled, true)
 })
 
 test("terminal completion does not enable the dashboard until result retrieval succeeds", () => {
@@ -120,12 +136,14 @@ test("terminal completion does not enable the dashboard until result retrieval s
   const loading = presentProcessingStatus(status, "loading")
   assert.equal(loading.hero, "Finalizing analysis result")
   assert.match(loading.subtitle, /Retrieving the dashboard result/)
+  assert.equal(loading.showDashboardAction, false)
   assert.equal(loading.dashboardEnabled, false)
   assert.equal(loading.dashboardLoading, true)
   assert.equal(loading.resultAlert, null)
 
   const notReady = presentProcessingStatus(status, "not_ready")
   assert.equal(notReady.hero, "Analysis result still preparing")
+  assert.equal(notReady.showDashboardAction, false)
   assert.equal(notReady.dashboardEnabled, false)
   assert.deepEqual(notReady.resultAlert, {
     type: "info",
@@ -136,6 +154,7 @@ test("terminal completion does not enable the dashboard until result retrieval s
 
   const error = presentProcessingStatus(status, "error")
   assert.equal(error.hero, "Analysis result unavailable")
+  assert.equal(error.showDashboardAction, false)
   assert.equal(error.dashboardEnabled, false)
   assert.equal(error.dashboardLoading, false)
   assert.deepEqual(error.resultAlert, {
@@ -159,7 +178,9 @@ test("failed processing presents failure and removes the dashboard action", () =
     },
   })
 
-  assert.deepEqual(presentProcessingStatus(status, "error"), {
+  const presentation = presentProcessingStatus(status, "error")
+
+  assert.deepEqual(presentation, {
     phase: "failed",
     tone: "error",
     badgeLabel: "Failed",
@@ -176,5 +197,39 @@ test("failed processing presents failure and removes the dashboard action", () =
       title: "Analysis could not be completed",
       description: "The analysis could not be completed. Start a new analysis and try again.",
     },
+  })
+  assert.equal(presentation.showDashboardAction, false)
+  assert.equal(presentation.dashboardEnabled, false)
+})
+
+test("result-error filename selects a deterministic generic result failure", () => {
+  const scenario = scenarioFromFilenames(["result-error.pdf"])
+
+  assert.equal(scenario, "result_error")
+  assert.deepEqual(resolveResultScenario(scenario), {
+    kind: "error",
+    status: 500,
+    errorKey: "resultRetrievalFailed",
+    delayMs: 600,
+  })
+})
+
+test("existing result scenarios keep independent deterministic outcomes", () => {
+  assert.equal(scenarioFromFilenames(["scenario-result-not-ready.pdf"]), "result_not_ready")
+  assert.deepEqual(resolveResultScenario("result_not_ready"), {
+    kind: "error",
+    status: 409,
+    errorKey: "resultNotReady",
+    delayMs: 600,
+  })
+  assert.equal(scenarioFromFilenames(["scenario-processing-failed.pdf"]), "processing_failed")
+  assert.deepEqual(resolveResultScenario("processing_failed"), {
+    kind: "error",
+    status: 409,
+    errorKey: "resultNotReady",
+    delayMs: 0,
+  })
+  assert.deepEqual(resolveResultScenario("happy_path_with_review_flags"), {
+    kind: "success",
   })
 })

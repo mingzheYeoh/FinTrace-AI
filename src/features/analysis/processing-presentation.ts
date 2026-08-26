@@ -59,6 +59,7 @@ export function presentProcessingStatus(
 
     const reviewText = `${reviews} item${reviews === 1 ? "" : "s"} require review`
     const supportingText = withReviewFlags ? `${coverage} · ${reviewText}` : coverage
+    const dashboardReady = resultState === "ready"
     const resultPresentation = {
       ready: {
         hero: "Analysis ready",
@@ -105,8 +106,8 @@ export function presentProcessingStatus(
       kicker: "Pipeline complete",
       hero: resultPresentation.hero,
       subtitle: resultPresentation.subtitle,
-      showDashboardAction: true,
-      dashboardEnabled: resultState === "ready",
+      showDashboardAction: dashboardReady,
+      dashboardEnabled: dashboardReady,
       dashboardLoading: resultState === "loading",
       resultAlert: resultPresentation.resultAlert,
       sideAlert:
@@ -136,7 +137,7 @@ export function presentProcessingStatus(
     kicker: activeIndex >= 0 ? `Stage ${activeIndex + 1} of ${total}` : "Preparing pipeline",
     hero: currentStage?.title ?? "Starting analysis",
     subtitle: currentStage?.description ?? status?.message ?? "Preparing the pipeline…",
-    showDashboardAction: true,
+    showDashboardAction: false,
     dashboardEnabled: false,
     dashboardLoading: false,
     resultAlert: null,
