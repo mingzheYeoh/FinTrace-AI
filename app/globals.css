@@ -78,6 +78,22 @@ body {
   border-bottom: 1px solid #1d2f37;
 }
 
+.ant-layout-content {
+  min-width: 0;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* Panels carry a hairline rule rather than a shadow — this is an instrument, not a card wall. */
 .panel {
   border: 1px solid var(--rule);
@@ -241,6 +257,88 @@ body {
   font-size: 12px;
   line-height: 1.85;
   color: var(--ink-soft);
+}
+
+.processing-card[data-tone="warning"] {
+  border-color: #ead5aa;
+}
+
+.processing-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.processing-actions .ant-btn {
+  min-height: 44px;
+}
+
+.comparison-card {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.comparison-card .ant-card-head-wrapper {
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.comparison-card .ant-card-extra {
+  white-space: normal;
+  text-align: right;
+}
+
+.comparison-table {
+  width: 100%;
+  max-width: 100%;
+}
+
+.comparison-table .ant-table-content {
+  overflow-x: auto !important;
+  overscroll-behavior-inline: contain;
+}
+
+.comparison-table .ant-table-cell {
+  vertical-align: middle;
+}
+
+.financial-value,
+.comparison-change {
+  white-space: nowrap;
+}
+
+.evidence-action.ant-btn {
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  color: var(--ink-faint);
+}
+
+.evidence-action.ant-btn:hover,
+.evidence-action.ant-btn:focus-visible {
+  color: var(--accent);
+}
+
+@media (max-width: 560px) {
+  .processing-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .processing-actions .ant-btn {
+    width: 100%;
+  }
+
+  .comparison-card .ant-card-head-wrapper {
+    flex-direction: column;
+  }
+
+  .comparison-card .ant-card-extra {
+    text-align: left;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

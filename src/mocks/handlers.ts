@@ -1,4 +1,4 @@
-import { http, HttpResponse } from "msw"
+import { delay, http, HttpResponse } from "msw"
 import {
   analysisResult,
   buildFailedStatus,
@@ -7,6 +7,7 @@ import {
   errors,
   evidenceIndex,
   isScenarioId,
+  resolveResultScenario,
   scenarioFromFilenames,
   statusSequence,
   type ScenarioId,
@@ -105,15 +106,21 @@ export const handlers = [
   }),
 
   /** getAnalysisResult — GET /api/v1/analyses/{analysisId}/result */
-  http.get("/api/v1/analyses/:analysisId/result", ({ params }) => {
+  http.get("/api/v1/analyses/:analysisId/result", async ({ params }) => {
     const analysisId = String(params.analysisId)
     const state = analyses.get(analysisId)
 
     if (!state || state.scenario === "analysis_not_found") {
       return HttpResponse.json(errors.analysisNotFound, { status: 404 })
     }
-    if (state.scenario === "result_not_ready" || state.scenario === "processing_failed") {
-      return HttpResponse.json(errors.resultNotReady, { status: 409 })
+    const scenarioResolution = resolveResultScenario(state.scenario)
+    if (scenarioResolution.kind === "error") {
+      if (scenarioResolution.delayMs > 0) {
+        await delay(scenarioResolution.delayMs)
+      }
+      return HttpResponse.json(errors[scenarioResolution.errorKey], {
+        status: scenarioResolution.status,
+      })
     }
     if (state.pollCount < statusSequence.length - 1) {
       return HttpResponse.json(errors.resultNotReady, { status: 409 })

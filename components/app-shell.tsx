@@ -39,7 +39,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </Header>
 
       <Content>
-        <main style={{ maxWidth: 1280, margin: "0 auto", padding: "28px 24px 40px" }}>{children}</main>
+        <main style={{ width: "100%", maxWidth: 1440, margin: "0 auto", padding: "28px 24px 40px" }}>
+          {children}
+        </main>
       </Content>
 
       <Footer style={{ background: "transparent", borderTop: "1px solid var(--rule)", textAlign: "center" }}>

@@ -213,8 +213,9 @@ export function EvidenceDrawer() {
   const { open, request, analysisId, closeEvidence } = useEvidence()
 
   const detailQuery = useEvidenceDetail(analysisId, request?.evidenceId ?? null, open)
-  // The result is already cached from the dashboard; this resolves ids to records.
-  const resultQuery = useAnalysisResult(analysisId, true)
+  // The result is already cached from the dashboard; only resolve ids while
+  // the drawer is open so processing never triggers an early result request.
+  const resultQuery = useAnalysisResult(analysisId, open)
 
   const detail = detailQuery.data
   const result = resultQuery.data

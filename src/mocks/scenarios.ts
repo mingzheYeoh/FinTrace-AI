@@ -6,38 +6,18 @@ import type {
   CreateAnalysisResponse,
   EvidenceDetail,
 } from "@/src/lib/api/client"
+import {
+  DEFAULT_SCENARIO,
+  isScenarioId,
+  resolveResultScenario,
+  scenarioFromFilenames,
+  type ScenarioId,
+} from "./scenario-routing"
 
 /**
  * Deterministic Phase 0 scenarios. This module and `handlers.ts` are the only
  * files permitted to import the JSON fixture.
  */
-export type ScenarioId =
-  | "happy_path_with_review_flags"
-  | "unsupported_file"
-  | "file_too_large"
-  | "too_many_files"
-  | "processing_failed"
-  | "result_not_ready"
-  | "analysis_not_found"
-  | "evidence_not_found"
-
-export const DEFAULT_SCENARIO: ScenarioId = "happy_path_with_review_flags"
-
-const SCENARIO_IDS: ScenarioId[] = [
-  "happy_path_with_review_flags",
-  "unsupported_file",
-  "file_too_large",
-  "too_many_files",
-  "processing_failed",
-  "result_not_ready",
-  "analysis_not_found",
-  "evidence_not_found",
-]
-
-export function isScenarioId(value: string | null | undefined): value is ScenarioId {
-  return Boolean(value) && SCENARIO_IDS.includes(value as ScenarioId)
-}
-
 /** Typed views over the fixture. */
 interface Fixture {
   fixture_version: string
@@ -88,6 +68,11 @@ export const errors = {
     message: "The analysis result is not ready yet.",
     retryable: true,
   },
+  resultRetrievalFailed: {
+    code: "RESULT_RETRIEVAL_FAILED",
+    message: "The analysis result could not be retrieved. Retry before opening the dashboard.",
+    retryable: true,
+  },
   processingFailed: {
     code: "PROCESSING_FAILED",
     message: "The analysis could not be completed. Start a new analysis and try again.",
@@ -119,21 +104,10 @@ export function buildFailedStatus(analysisId: string): AnalysisStatusResponse {
   }
 }
 
-/**
- * Chooses a scenario from a filename. Development-only affordance so the eight
- * required failure paths are reachable from the upload screen without a
- * hidden production feature.
- */
-export function scenarioFromFilenames(names: string[]): ScenarioId {
-  for (const name of names) {
-    const lower = name.toLowerCase()
-    if (lower.includes("scenario-processing-failed")) return "processing_failed"
-    if (lower.includes("scenario-result-not-ready")) return "result_not_ready"
-    if (lower.includes("scenario-analysis-not-found")) return "analysis_not_found"
-    if (lower.includes("scenario-evidence-not-found")) return "evidence_not_found"
-    if (lower.includes("scenario-file-too-large")) return "file_too_large"
-    if (lower.includes("scenario-unsupported")) return "unsupported_file"
-    if (lower.includes("scenario-too-many-files")) return "too_many_files"
-  }
-  return DEFAULT_SCENARIO
+export {
+  DEFAULT_SCENARIO,
+  isScenarioId,
+  resolveResultScenario,
+  scenarioFromFilenames,
+  type ScenarioId,
 }
